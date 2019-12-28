@@ -11,7 +11,29 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="12e1efbc-24d7-46db-9966-bfff30ad8439" name="Default Changelist" comment="" />
+    <list default="true" id="12e1efbc-24d7-46db-9966-bfff30ad8439" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/CXX.includecache" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/CXX.includecache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/compresser.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/compresser.cpp.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/inputOutput.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/inputOutput.cpp.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/main.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/main.cpp.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/utils.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/utils.cpp.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-log.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/ProyectoGradoClion" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/ProyectoGradoClion.cbp" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/ProyectoGradoClion.cbp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/headers/compresser.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/headers/compresser.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/headers/inputOutput.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/headers/inputOutput.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/headers/utils.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/headers/utils.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sources/compresser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/sources/compresser.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sources/inputOutput.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/sources/inputOutput.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sources/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/sources/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sources/utils.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/sources/utils.cpp" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,7 +43,11 @@
     <option name="formatViaClangd" value="false" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1Va7T6WfJ43Q7OWntXhu35qmjXE" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -29,6 +55,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
   </component>
   <component name="RecentsManager">
@@ -67,6 +94,7 @@
       <option name="presentableId" value="Default" />
       <updated>1577479632846</updated>
       <workItem from="1577479647610" duration="1945000" />
+      <workItem from="1577545642107" duration="1766000" />
     </task>
     <servers />
   </component>
@@ -74,56 +102,45 @@
     <option name="version" value="1" />
   </component>
   <component name="WindowStateProjectService">
-    <state width="1250" height="173" key="GridCell.Tab.0.bottom" timestamp="1577481170331">
+    <state x="275" y="27" width="875" height="636" key="CommitChangelistDialog2" timestamp="1577546174507">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
-    <state width="1250" height="173" key="GridCell.Tab.0.bottom/70.27.1296.636@70.27.1296.636" timestamp="1577481170331" />
-    <state width="1250" height="173" key="GridCell.Tab.0.center" timestamp="1577481170330">
+    <state x="275" y="27" width="875" height="636" key="CommitChangelistDialog2/70.27.1296.636@70.27.1296.636" timestamp="1577546174507" />
+    <state width="1103" height="173" key="GridCell.Tab.0.bottom" timestamp="1577546093219">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
-    <state width="1250" height="173" key="GridCell.Tab.0.center/70.27.1296.636@70.27.1296.636" timestamp="1577481170330" />
-    <state width="1250" height="173" key="GridCell.Tab.0.left" timestamp="1577481170328">
+    <state width="1103" height="173" key="GridCell.Tab.0.bottom/70.27.1296.636@70.27.1296.636" timestamp="1577546093219" />
+    <state width="1103" height="173" key="GridCell.Tab.0.center" timestamp="1577546093218">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
-    <state width="1250" height="173" key="GridCell.Tab.0.left/70.27.1296.636@70.27.1296.636" timestamp="1577481170328" />
-    <state width="1250" height="173" key="GridCell.Tab.0.right" timestamp="1577481170331">
+    <state width="1103" height="173" key="GridCell.Tab.0.center/70.27.1296.636@70.27.1296.636" timestamp="1577546093218" />
+    <state width="1103" height="173" key="GridCell.Tab.0.left" timestamp="1577546093216">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
-    <state width="1250" height="173" key="GridCell.Tab.0.right/70.27.1296.636@70.27.1296.636" timestamp="1577481170331" />
-    <state width="1250" height="173" key="GridCell.Tab.1.bottom" timestamp="1577481171533">
+    <state width="1103" height="173" key="GridCell.Tab.0.left/70.27.1296.636@70.27.1296.636" timestamp="1577546093216" />
+    <state width="1103" height="173" key="GridCell.Tab.0.right" timestamp="1577546093218">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
-    <state width="1250" height="173" key="GridCell.Tab.1.bottom/70.27.1296.636@70.27.1296.636" timestamp="1577481171533" />
-    <state width="1250" height="173" key="GridCell.Tab.1.center" timestamp="1577481171532">
+    <state width="1103" height="173" key="GridCell.Tab.0.right/70.27.1296.636@70.27.1296.636" timestamp="1577546093218" />
+    <state width="1103" height="173" key="GridCell.Tab.1.bottom" timestamp="1577546093223">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
-    <state width="1250" height="173" key="GridCell.Tab.1.center/70.27.1296.636@70.27.1296.636" timestamp="1577481171532" />
-    <state width="1250" height="173" key="GridCell.Tab.1.left" timestamp="1577481171532">
+    <state width="1103" height="173" key="GridCell.Tab.1.bottom/70.27.1296.636@70.27.1296.636" timestamp="1577546093223" />
+    <state width="1103" height="173" key="GridCell.Tab.1.center" timestamp="1577546093222">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
-    <state width="1250" height="173" key="GridCell.Tab.1.left/70.27.1296.636@70.27.1296.636" timestamp="1577481171532" />
-    <state width="1250" height="173" key="GridCell.Tab.1.right" timestamp="1577481171533">
+    <state width="1103" height="173" key="GridCell.Tab.1.center/70.27.1296.636@70.27.1296.636" timestamp="1577546093222" />
+    <state width="1103" height="173" key="GridCell.Tab.1.left" timestamp="1577546093222">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
-    <state width="1250" height="173" key="GridCell.Tab.1.right/70.27.1296.636@70.27.1296.636" timestamp="1577481171533" />
+    <state width="1103" height="173" key="GridCell.Tab.1.left/70.27.1296.636@70.27.1296.636" timestamp="1577546093222" />
+    <state width="1103" height="173" key="GridCell.Tab.1.right" timestamp="1577546093223">
+      <screen x="70" y="27" width="1296" height="636" />
+    </state>
+    <state width="1103" height="173" key="GridCell.Tab.1.right/70.27.1296.636@70.27.1296.636" timestamp="1577546093223" />
     <state x="374" y="172" key="com.intellij.ide.util.TipDialog" timestamp="1577479653934">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
     <state x="374" y="172" key="com.intellij.ide.util.TipDialog/70.27.1296.636@70.27.1296.636" timestamp="1577479653934" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/sources/main.cpp</url>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/sources/main.cpp</url>
-          <line>10</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

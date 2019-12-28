@@ -1,6 +1,6 @@
 // Header file:
 #include <string>
-#include "/home/osboxes/Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/include/H5Cpp.h"
+#include "H5Cpp.h"
 
 using namespace std;
 #ifndef H5_NO_NAMESPACE

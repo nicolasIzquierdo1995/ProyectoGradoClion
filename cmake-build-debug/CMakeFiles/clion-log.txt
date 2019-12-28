@@ -1,4 +1,5 @@
 /home/osboxes/Desktop/clion-2019.3.2/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/osboxes/CLionProjects/ProyectoGradoClion
 -- Configuring done
+WARNING: Target "ProyectoGradoClion" requests linking to directory "/home/osboxes/CLionProjects/ProyectoGradoClion/libs".  Targets may link only to libraries.  CMake is dropping the item.
 -- Generating done
 -- Build files have been written to: /home/osboxes/CLionProjects/ProyectoGradoClion/cmake-build-debug

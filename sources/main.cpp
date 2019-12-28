@@ -1,4 +1,3 @@
-#include "/home/osboxes/Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/include/hdf5.h"
 #include "../headers/inputOutput.hpp"
 #include "../headers/compresser.hpp"
 #include <iostream>

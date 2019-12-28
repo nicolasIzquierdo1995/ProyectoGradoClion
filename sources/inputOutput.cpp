@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <string.h>
-#include <stdio.h>
 using namespace std;
 using namespace inputOutput;
 using namespace H5;

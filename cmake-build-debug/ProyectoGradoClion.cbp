@@ -5,7 +5,7 @@
 		<Option title="ProyectoGradoClion"/>
 		<Option makefile_is_custom="1"/>
 		<Option compiler="gcc"/>
-		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\Desktop\;CMake Files\..\..\Desktop\myhdfstuff\;CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\;CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\;CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\;CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\;CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\;CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\;CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\hdf5\;CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\zlib\;CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\szip\;"/>
+		<Option virtualFolders="CMake Files\;"/>
 		<Build>
 			<Target title="all">
 				<Option working_dir="/home/osboxes/CLionProjects/ProyectoGradoClion/cmake-build-debug"/>
@@ -34,13 +34,7 @@
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
-					<Add option="-DH5_BUILT_AS_DYNAMIC_LIB"/>
-					<Add option="-D_GNU_SOURCE"/>
-					<Add option="-D_FILE_OFFSET_BITS=64"/>
-					<Add option="-D_LARGEFILE64_SOURCE"/>
-					<Add option="-D_LARGEFILE_SOURCE"/>
-					<Add option="-DDEBUG"/>
-					<Add directory="/home/osboxes/Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/include"/>
+					<Add directory="/home/osboxes/CLionProjects/ProyectoGradoClion/libs/hdf5/include"/>
 					<Add directory="/usr/include/c++/9"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
 					<Add directory="/usr/include/c++/9/backward"/>
@@ -64,13 +58,7 @@
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
-					<Add option="-DH5_BUILT_AS_DYNAMIC_LIB"/>
-					<Add option="-D_GNU_SOURCE"/>
-					<Add option="-D_FILE_OFFSET_BITS=64"/>
-					<Add option="-D_LARGEFILE64_SOURCE"/>
-					<Add option="-D_LARGEFILE_SOURCE"/>
-					<Add option="-DDEBUG"/>
-					<Add directory="/home/osboxes/Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/include"/>
+					<Add directory="/home/osboxes/CLionProjects/ProyectoGradoClion/libs/hdf5/include"/>
 					<Add directory="/usr/include/c++/9"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
 					<Add directory="/usr/include/c++/9/backward"/>
@@ -121,30 +109,6 @@
 		</Unit>
 		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
-		</Unit>
-		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/../../Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/share/cmake/hdf5/hdf5-config-version.cmake">
-			<Option virtualFolder="CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\hdf5\"/>
-		</Unit>
-		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/../../Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/share/cmake/hdf5/hdf5-config.cmake">
-			<Option virtualFolder="CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\hdf5\"/>
-		</Unit>
-		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/../../Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/share/cmake/hdf5/hdf5-targets-release.cmake">
-			<Option virtualFolder="CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\hdf5\"/>
-		</Unit>
-		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/../../Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/share/cmake/hdf5/hdf5-targets.cmake">
-			<Option virtualFolder="CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\hdf5\"/>
-		</Unit>
-		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/../../Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/share/cmake/zlib/zlib-targets-release.cmake">
-			<Option virtualFolder="CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\zlib\"/>
-		</Unit>
-		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/../../Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/share/cmake/zlib/zlib-targets.cmake">
-			<Option virtualFolder="CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\zlib\"/>
-		</Unit>
-		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/../../Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/share/cmake/szip/szip-targets-release.cmake">
-			<Option virtualFolder="CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\szip\"/>
-		</Unit>
-		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/../../Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/share/cmake/szip/szip-targets.cmake">
-			<Option virtualFolder="CMake Files\..\..\Desktop\myhdfstuff\HDF5-1.10.5-Linux\HDF_Group\HDF5\1.10.5\share\cmake\szip\"/>
 		</Unit>
 	</Project>
 </CodeBlocks_project_file>

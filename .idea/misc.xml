@@ -6,6 +6,9 @@
       <file path="$PROJECT_DIR$/headers" />
       <file path="$PROJECT_DIR$/sources" />
     </sourceRoots>
+    <libraryRoots>
+      <file path="$PROJECT_DIR$/libs" />
+    </libraryRoots>
   </component>
   <component name="JavaScriptSettings">
     <option name="languageLevel" value="ES6" />

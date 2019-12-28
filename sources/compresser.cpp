@@ -1,10 +1,7 @@
 
 #include "../headers/compresser.hpp"
 #include "../headers/utils.hpp"
-
 #include <iostream>
-#include <string.h>
-#include <stdio.h>
 using namespace std;
 using namespace compresser;
 using namespace H5;
