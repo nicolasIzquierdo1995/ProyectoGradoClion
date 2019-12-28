@@ -212,7 +212,7 @@ CMAKE_STRIP:FILEPATH=/usr/bin/strip
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //The directory containing a CMake configuration file for HDF5.
-HDF5_DIR:PATH=HDF5_DIR-NOTFOUND
+HDF5_DIR:PATH=/home/osboxes/CLionProjects/ProyectoGradoClion/libs/hdf5/share/cmake/hdf5
 
 //Path to a program.
 ProcessorCount_cmd_nproc:FILEPATH=/usr/bin/nproc

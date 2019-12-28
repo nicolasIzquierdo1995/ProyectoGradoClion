@@ -124,8 +124,8 @@ ProyectoGradoClion: CMakeFiles/ProyectoGradoClion.dir/sources/inputOutput.cpp.o
 ProyectoGradoClion: CMakeFiles/ProyectoGradoClion.dir/sources/main.cpp.o
 ProyectoGradoClion: CMakeFiles/ProyectoGradoClion.dir/sources/utils.cpp.o
 ProyectoGradoClion: CMakeFiles/ProyectoGradoClion.dir/build.make
-ProyectoGradoClion: /home/osboxes/Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/lib/libhdf5_cpp.so.103.1.0
-ProyectoGradoClion: /home/osboxes/Desktop/myhdfstuff/HDF5-1.10.5-Linux/HDF_Group/HDF5/1.10.5/lib/libhdf5.so.103.1.0
+ProyectoGradoClion: ../libs/hdf5/lib/libhdf5_cpp.so.103.1.0
+ProyectoGradoClion: ../libs/hdf5/lib/libhdf5.so.103.1.0
 ProyectoGradoClion: CMakeFiles/ProyectoGradoClion.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/osboxes/CLionProjects/ProyectoGradoClion/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable ProyectoGradoClion"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/ProyectoGradoClion.dir/link.txt --verbose=$(VERBOSE)

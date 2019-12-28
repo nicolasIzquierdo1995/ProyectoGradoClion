@@ -11,28 +11,20 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="12e1efbc-24d7-46db-9966-bfff30ad8439" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="12e1efbc-24d7-46db-9966-bfff30ad8439" name="Default Changelist" comment="Add libraries">
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/CXX.includecache" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/CXX.includecache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/compresser.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/compresser.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/inputOutput.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/inputOutput.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/main.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/main.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/utils.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/sources/utils.cpp.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/DependInfo.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/DependInfo.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/build.make" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/build.make" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/depend.internal" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/depend.internal" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/depend.make" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/depend.make" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/flags.make" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/flags.make" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/link.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ProyectoGradoClion.dir/link.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-log.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/ProyectoGradoClion" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/ProyectoGradoClion.cbp" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/ProyectoGradoClion.cbp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/headers/compresser.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/headers/compresser.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/headers/inputOutput.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/headers/inputOutput.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/headers/utils.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/headers/utils.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sources/compresser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/sources/compresser.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sources/inputOutput.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/sources/inputOutput.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sources/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/sources/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sources/utils.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/sources/utils.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,18 +86,30 @@
       <option name="presentableId" value="Default" />
       <updated>1577479632846</updated>
       <workItem from="1577479647610" duration="1945000" />
-      <workItem from="1577545642107" duration="1766000" />
+      <workItem from="1577545642107" duration="3257000" />
     </task>
+    <task id="LOCAL-00001" summary="Add libraries">
+      <created>1577547628914</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1577547628914</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Add libraries" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add libraries" />
+  </component>
   <component name="WindowStateProjectService">
-    <state x="275" y="27" width="875" height="636" key="CommitChangelistDialog2" timestamp="1577546174507">
+    <state x="275" y="27" width="875" height="636" key="CommitChangelistDialog2" timestamp="1577547627962">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
-    <state x="275" y="27" width="875" height="636" key="CommitChangelistDialog2/70.27.1296.636@70.27.1296.636" timestamp="1577546174507" />
+    <state x="275" y="27" width="875" height="636" key="CommitChangelistDialog2/70.27.1296.636@70.27.1296.636" timestamp="1577547627962" />
     <state width="1103" height="173" key="GridCell.Tab.0.bottom" timestamp="1577546093219">
       <screen x="70" y="27" width="1296" height="636" />
     </state>
@@ -142,5 +146,13 @@
       <screen x="70" y="27" width="1296" height="636" />
     </state>
     <state x="374" y="172" key="com.intellij.ide.util.TipDialog/70.27.1296.636@70.27.1296.636" timestamp="1577479653934" />
+    <state x="486" y="265" width="454" height="167" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1577547660615">
+      <screen x="70" y="27" width="1296" height="636" />
+    </state>
+    <state x="486" y="265" width="454" height="167" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/70.27.1296.636@70.27.1296.636" timestamp="1577547660615" />
+    <state x="382" y="148" width="672" height="677" key="run.anything.popup" timestamp="1577547675351">
+      <screen x="70" y="27" width="1296" height="636" />
+    </state>
+    <state x="382" y="148" width="672" height="677" key="run.anything.popup/70.27.1296.636@70.27.1296.636" timestamp="1577547675351" />
   </component>
 </project>

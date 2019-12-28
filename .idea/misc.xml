@@ -8,6 +8,7 @@
     </sourceRoots>
     <libraryRoots>
       <file path="$PROJECT_DIR$/libs" />
+      <file path="$PROJECT_DIR$/libs/hdf5" />
     </libraryRoots>
   </component>
   <component name="JavaScriptSettings">
