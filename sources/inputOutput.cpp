@@ -7,12 +7,7 @@ using namespace std;
 using namespace inputOutput;
 using namespace H5;
 
-
-InputOutput::InputOutput(){
-
-}
-
-bool VerifyArguments(int argc, char *argv[]){
+static bool VerifyArguments(int argc, char *argv[]){
     if (argc != 4){
       return false;
     }
@@ -26,15 +21,15 @@ bool VerifyArguments(int argc, char *argv[]){
       return false;
     }
 
-    if (strncmp(compressionLevel, "1", 1) != 0 && strncmp(compressionLevel, "2", 1) != 0 ){
-      return false;
+    if (strncmp(compressionLevel, "1", 1) != 0){
+     return false;
     }
 
     return true;
 }
 
 
-Arguments* CreateErrorArgument(){
+static Arguments* CreateErrorArgument(){
     Arguments arg;
     Arguments * parg;
     parg = &arg;

@@ -17,8 +17,6 @@ namespace inputOutput{
 
   class InputOutput {
     public:
-    InputOutput();
-    Arguments* ProcessArguments(int argc, char* argv[]);
-    
+    static Arguments* ProcessArguments(int argc, char* argv[]);
   };
 }
