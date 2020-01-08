@@ -2,6 +2,7 @@
 #include "../headers/compresser.hpp"
 #include "../headers/utils.hpp"
 #include <iostream>
+#include <boost/algorithm/string/replace.hpp>
 using namespace std;
 using namespace compresser;
 using namespace H5;
@@ -13,6 +14,10 @@ Compresser::Compresser(){
 }
 
 void gzipCompression(H5File file){
+    string filePathCompressed = file.getFileName();
+    string filePathUncompressed = filePathCompressed;
+    boost::replace_all(filePathCompressed, ".fast5", "Compressed.fast5");
+    boost::replace_all(filePathUncompressed, ".fast5", "Uncompressed.fast5");
     hsize_t chunk_dims[1] = {20};
     Utils* utils = new Utils();
     DataSet* originalDataset =  utils->GetDataset(file, "/Raw/Reads", "Read", "Signal");
@@ -32,10 +37,10 @@ void gzipCompression(H5File file){
 
     originalDataset->read(buffer,dt,*dataSpace,*dataSpace);
 
-    H5File* failsito1 = new H5File("noCompression.fast5",H5F_ACC_TRUNC);
-    H5File* failsito2 = new H5File("compressed.fast5",H5F_ACC_TRUNC);
-    DataSet* dataSet1 = new DataSet(failsito1->createDataSet("coquito",dt,*dataSpace,*plist1));  
-    DataSet* dataSet2 = new DataSet(failsito2->createDataSet("coquito",dt,*dataSpace,*plist2));    
+    H5File* compressedFile = new H5File(filePathCompressed,H5F_ACC_TRUNC);
+    H5File* unCompressedFile = new H5File(filePathUncompressed,H5F_ACC_TRUNC);
+    DataSet* dataSet1 = new DataSet(compressedFile->createDataSet("coquito",dt,*dataSpace,*plist1));
+    DataSet* dataSet2 = new DataSet(unCompressedFile->createDataSet("coquito",dt,*dataSpace,*plist2));
     dataSet1->write(buffer,dt);
     dataSet2->write(buffer,dt);
 }

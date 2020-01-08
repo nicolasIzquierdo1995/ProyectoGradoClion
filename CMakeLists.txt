@@ -6,6 +6,7 @@ set(FIND_HDF_COMPONENTS C CXX shared)
 
 find_package (HDF5 PATHS ${CMAKE_SOURCE_DIR}/libs/hdf5/share/cmake/hdf5 COMPONENTS ${FIND_HDF_COMPONENTS})
 set (LINK_LIBS ${LINK_LIBS} ${HDF5_CXX_SHARED_LIBRARY})
+find_package(Boost COMPONENTS system filesystem REQUIRED)
 
 find_package(Threads)
 
@@ -20,4 +21,5 @@ file(GLOB SOURCES
 
 
 add_executable(ProyectoGradoClion ${SOURCES})
-target_link_libraries (ProyectoGradoClion PRIVATE ${LINK_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (ProyectoGradoClion PRIVATE ${LINK_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${Boost_FILESYSTEM_LIBRARY}
+        ${Boost_SYSTEM_LIBRARY})

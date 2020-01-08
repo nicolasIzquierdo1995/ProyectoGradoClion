@@ -12,6 +12,7 @@ namespace inputOutput{
     bool multiThreading;
     int compressionLevel;
     bool isOk;
+    bool isFolder;
     string errorMessage;
   } Arguments;
 

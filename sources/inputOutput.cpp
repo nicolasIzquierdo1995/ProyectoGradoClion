@@ -1,8 +1,8 @@
 
 #include "../headers/inputOutput.hpp"
-
 #include <iostream>
 #include <string.h>
+#include <sys/stat.h>
 using namespace std;
 using namespace inputOutput;
 using namespace H5;
@@ -46,7 +46,19 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     arg->multiThreading = strncmp(argv[2],"false",4);
     arg->compressionLevel = atoi(argv[3]);
     arg->isOk = true;
-    H5File file(argv[1], H5F_ACC_SWMR_READ);
-    arg->file = file;
+
+
+    struct stat path_stat;
+    stat(argv[1], &path_stat);
+    bool isDirectory = S_ISDIR(path_stat.st_mode);
+
+    if (!isDirectory){
+        H5File file(argv[1], H5F_ACC_SWMR_READ);
+        arg->file = file;
+        arg->isFolder = false;
+    }
+    else {
+        arg->isFolder = true;
+    }
     return arg;
 }
