@@ -8,40 +8,59 @@ using namespace compresser;
 using namespace H5;
 using namespace utils;
 
+struct eventData {
+    int start;
+    int length;
+    float mean;
+    float stdv;
+};
 
 Compresser::Compresser(){
 
 }
 
 void gzipCompression(H5File file){
+
     string filePathCompressed = file.getFileName();
-    string filePathUncompressed = filePathCompressed;
     boost::replace_all(filePathCompressed, ".fast5", "Compressed.fast5");
-    boost::replace_all(filePathUncompressed, ".fast5", "Uncompressed.fast5");
+
+    CompType eventDataType(sizeof(eventData));
+    eventDataType.insertMember("start", HOFFSET(eventData,start), PredType::NATIVE_INT);
+    eventDataType.insertMember("length", HOFFSET(eventData,length), PredType::NATIVE_INT);
+    eventDataType.insertMember("mean", HOFFSET(eventData,mean), PredType::NATIVE_FLOAT);
+    eventDataType.insertMember("stdv", HOFFSET(eventData,stdv), PredType::NATIVE_FLOAT);
+
     hsize_t chunk_dims[1] = {20};
-    DataSet* originalDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
-    DataType dt = originalDataset->getDataType();
-    DataSpace* dataSpace = new DataSpace(originalDataset->getSpace());
-    hsize_t dims[dataSpace->getSimpleExtentNdims()];
-    dataSpace->getSimpleExtentDims(dims);
-    int buffer[dims[0]];
+    DataSet* signalDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
+    DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
 
-    DSetCreatPropList* plist1 = new  DSetCreatPropList;
-    plist1->setDeflate(0);
-    plist1->setChunk(1, chunk_dims);
+    DataType signalDt = signalDataset->getDataType();
+    DataSpace* signalsDataSpace = new DataSpace(signalDataset->getSpace());
+    hsize_t signalDims[signalsDataSpace->getSimpleExtentNdims()];
+    signalsDataSpace->getSimpleExtentDims(signalDims);
+    int signalBuffer[signalDims[0]];
+    
+    DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
+    hsize_t eventsDims[eventsDataSpace->getSimpleExtentNdims()];
+    signalsDataSpace->getSimpleExtentDims(eventsDims);
+    eventData* eventsBuffer = new eventData[(unsigned long)(eventsDims[0])];
 
-    DSetCreatPropList* plist2 = new DSetCreatPropList;
-    plist2->setDeflate(9);
-    plist2->setChunk(1, chunk_dims);
+    DSetCreatPropList* signalPlist = new DSetCreatPropList;
+    signalPlist->setDeflate(9);
+    signalPlist->setChunk(1, chunk_dims);
 
-    originalDataset->read(buffer,dt,*dataSpace,*dataSpace);
+    DSetCreatPropList* eventsPlist = new DSetCreatPropList;
+    eventsPlist->setDeflate(9);
+    eventsPlist->setChunk(1, chunk_dims);
+
+    signalDataset->read(signalBuffer,signalDt,*signalsDataSpace,*signalsDataSpace);
+    eventsDataset->read(eventsBuffer,eventDataType,*eventsDataSpace,*eventsDataSpace);
 
     H5File* compressedFile = new H5File(filePathCompressed,H5F_ACC_TRUNC);
-    H5File* unCompressedFile = new H5File(filePathUncompressed,H5F_ACC_TRUNC);
-    DataSet* dataSet1 = new DataSet(compressedFile->createDataSet("coquito",dt,*dataSpace,*plist1));
-    DataSet* dataSet2 = new DataSet(unCompressedFile->createDataSet("coquito",dt,*dataSpace,*plist2));
-    dataSet1->write(buffer,dt);
-    dataSet2->write(buffer,dt);
+    DataSet* dataSet1 = new DataSet(compressedFile->createDataSet("Signal",signalDt,*signalsDataSpace,*signalPlist));
+    dataSet1->write(signalBuffer,signalDt);
+    DataSet* dataSet2 = new DataSet(compressedFile->createDataSet("Events",eventDataType,*eventsDataSpace,*eventsPlist));
+    dataSet2->write(eventsBuffer,eventDataType);
 }
 
 void Compresser::CompressFile(H5File file, int compressionLevel){
