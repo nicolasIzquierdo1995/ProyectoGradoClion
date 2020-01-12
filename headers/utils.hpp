@@ -7,7 +7,8 @@ using namespace std;
 namespace utils{
   class Utils {
     public:
-        Utils();
-        DataSet* GetDataset(H5File file, string path, string dataSetGrandParentName, string dataSetName);
+        static DataSet* GetDataset(H5File file, string path, string dataSetGrandParentName, string dataSetName);
+        static int GetFilesCount(string path);
+        static string* GetFileArray(string path, int fileCount);
   };
 }

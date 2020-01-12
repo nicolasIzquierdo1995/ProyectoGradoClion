@@ -1,15 +1,16 @@
 #include "../headers/inputOutput.hpp"
 #include "../headers/compresser.hpp"
 #include "../headers/threadPool.hpp"
+#include "../headers/utils.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/lambda/bind.hpp>
 #include <iostream>
 #include <future>
-#include <iostream>
 using namespace std;
 using namespace inputOutput;
 using namespace compresser;
 using namespace threadPool;
+using namespace utils;
 using namespace H5;
 using namespace boost::filesystem;
 using namespace boost::lambda;
@@ -23,28 +24,9 @@ int main (int argc, char* argv[])
         comp->CompressFile(args->file, args->compressionLevel);
     }
     else {
-        path the_path(argv[1]);
-
-        int fileCount = std::count_if(
-                directory_iterator(the_path),
-                directory_iterator(),
-                static_cast<bool (*)(const path &)>(is_regular_file));
-
-        string fileArray[fileCount];
+        int fileCount = Utils::GetFilesCount(argv[1]);
+        string* fileArray = Utils::GetFileArray(argv[1], fileCount);
         future<void> promisesArray[fileCount];
-        int i = 0;
-        typedef vector <path> vec;             // store paths,
-        vec v;                                // so we can sort them later
-
-        copy(directory_iterator(argv[1]), directory_iterator(), back_inserter(v));
-
-        sort(v.begin(), v.end());             // sort, since directory iteration
-        // is not ordered on some file systems
-
-        for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it) {
-            fileArray[i] = it->string();
-            i++;
-        }
 
         for (int j = 0; j < fileCount; j++) {
             H5File file(fileArray[j], H5F_ACC_SWMR_READ);

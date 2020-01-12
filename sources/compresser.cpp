@@ -19,8 +19,7 @@ void gzipCompression(H5File file){
     boost::replace_all(filePathCompressed, ".fast5", "Compressed.fast5");
     boost::replace_all(filePathUncompressed, ".fast5", "Uncompressed.fast5");
     hsize_t chunk_dims[1] = {20};
-    Utils* utils = new Utils();
-    DataSet* originalDataset =  utils->GetDataset(file, "/Raw/Reads", "Read", "Signal");
+    DataSet* originalDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
     DataType dt = originalDataset->getDataType();
     DataSpace* dataSpace = new DataSpace(originalDataset->getSpace());
     hsize_t dims[dataSpace->getSimpleExtentNdims()];
