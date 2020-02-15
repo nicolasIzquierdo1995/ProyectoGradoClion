@@ -50,3 +50,24 @@ string* Utils::GetFileArray(string filePath, int fileCount){
     }
     return fileArray;
 }
+
+bool Utils::IsInt(DataSet ds){
+    H5T_class_t type_class = ds.getTypeClass();
+    return type_class == H5T_INTEGER;
+}
+
+char* Utils::getUIntDtype(int num){
+    char* name;
+    if (num < 2^8){
+        name = "char";
+    }
+    else if (num < 2^16){
+        name = "ushortint";
+    }
+    else if (num < 2^32){
+        name = "uint";
+    }else{
+        name = "ulongint";
+    }
+    return name;
+}
