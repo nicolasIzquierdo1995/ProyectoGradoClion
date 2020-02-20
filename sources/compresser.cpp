@@ -19,6 +19,27 @@ Compresser::Compresser(){
 
 }
 
+void stats(H5File file){
+    CompType eventDataType(sizeof(eventData));
+    eventDataType.insertMember("start", HOFFSET(eventData,start), PredType::NATIVE_INT);
+    eventDataType.insertMember("length", HOFFSET(eventData,length), PredType::NATIVE_INT);
+    eventDataType.insertMember("mean", HOFFSET(eventData,mean), PredType::NATIVE_FLOAT);
+    eventDataType.insertMember("stdv", HOFFSET(eventData,stdv), PredType::NATIVE_FLOAT);
+    DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
+    DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
+    hsize_t eventsDims[eventsDataSpace->getSimpleExtentNdims()];
+    eventsDataSpace->getSimpleExtentDims(eventsDims);
+    eventData* eventsBuffer = new eventData[(unsigned long)(eventsDims[0])];
+    eventsDataset->read(eventsBuffer,eventDataType,*eventsDataSpace,*eventsDataSpace);
+    int skips[(unsigned long)(eventsDims[0])];
+    for(int i = 0; i<(unsigned long)(eventsDims[0]);i++){
+        skips[i] = eventsBuffer[i+1].start - (eventsBuffer[i].start + eventsBuffer[i].length);
+    }
+    for(int j = 0; j<(unsigned long)(eventsDims[0]);j++){
+        cout<<skips[j]<<",";
+    }
+}
+
 void gzipCompression(H5File file){
 
     string filePathCompressed = file.getFileName();
@@ -42,7 +63,7 @@ void gzipCompression(H5File file){
     
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
     hsize_t eventsDims[eventsDataSpace->getSimpleExtentNdims()];
-    signalsDataSpace->getSimpleExtentDims(eventsDims);
+    eventsDataSpace->getSimpleExtentDims(eventsDims);
     eventData* eventsBuffer = new eventData[(unsigned long)(eventsDims[0])];
 
     DSetCreatPropList* signalPlist = new DSetCreatPropList;
@@ -65,7 +86,9 @@ void gzipCompression(H5File file){
 
 void Compresser::CompressFile(H5File file, int compressionLevel){
 
-    if(compressionLevel == 1){
+    if(compressionLevel == 0){
+        stats(file);
+    }else if(compressionLevel == 1){
         gzipCompression(file);
     }   
 
