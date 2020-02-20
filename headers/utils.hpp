@@ -10,5 +10,7 @@ namespace utils{
         static DataSet* GetDataset(H5File file, string path, string dataSetGrandParentName, string dataSetName);
         static int GetFilesCount(string path);
         static string* GetFileArray(string path, int fileCount);
+        static bool IsInt(DataSet ds);
+        static char* getUIntDtype(int num);
   };
 }
