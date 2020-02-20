@@ -53,7 +53,7 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     bool isDirectory = S_ISDIR(path_stat.st_mode);
 
     if (!isDirectory){
-        H5File file(argv[1], H5F_ACC_SWMR_READ);
+        H5File file(argv[1], H5F_ACC_RDWR);
         arg->file = file;
         arg->isFolder = false;
     }

@@ -41,7 +41,6 @@ void stats(H5File file){
 }
 
 void gzipCompression(H5File file){
-
     string filePathCompressed = file.getFileName();
     boost::replace_all(filePathCompressed, ".fast5", "Compressed.fast5");
 
@@ -60,7 +59,7 @@ void gzipCompression(H5File file){
     hsize_t signalDims[signalsDataSpace->getSimpleExtentNdims()];
     signalsDataSpace->getSimpleExtentDims(signalDims);
     int signalBuffer[signalDims[0]];
-    
+
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
     hsize_t eventsDims[eventsDataSpace->getSimpleExtentNdims()];
     eventsDataSpace->getSimpleExtentDims(eventsDims);
