@@ -104,6 +104,9 @@
 		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/headers/inputOutput.hpp">
 			<Option target="ProyectoGradoClion"/>
 		</Unit>
+		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/headers/threadPool.hpp">
+			<Option target="ProyectoGradoClion"/>
+		</Unit>
 		<Unit filename="/home/osboxes/CLionProjects/ProyectoGradoClion/headers/utils.hpp">
 			<Option target="ProyectoGradoClion"/>
 		</Unit>

@@ -8,6 +8,6 @@ namespace compresser{
   class Compresser {
     public:
     Compresser();
-    void CompressFile(H5File file, int compressionLevel);    
+    void CompressFile(H5File file, int compressionLevel);
   };
 }
