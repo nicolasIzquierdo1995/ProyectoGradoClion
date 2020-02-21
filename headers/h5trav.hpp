@@ -1,22 +1,23 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Copyright by The HDF Group.                                               *
- * Copyright by the Board of Trustees of the University of Illinois.         *
- * All rights reserved.                                                      *
- *                                                                           *
- * This file is part of HDF5.  The full HDF5 copyright notice, including     *
- * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 #ifndef H5TRAV_H__
 #define H5TRAV_H__
 
 #include "hdf5.h"
+#include "herror.hpp"
+
+#ifdef H5_STDC_HEADERS
+#   include <assert.h>
+#   include <ctype.h>
+#   include <errno.h>
+#   include <fcntl.h>
+#   include <float.h>
+#   include <limits.h>
+#   include <math.h>
+#   include <signal.h>
+#   include <stdarg.h>
+#   include <stdio.h>
+#   include <stdlib.h>
+#   include <string.h>
+#endif
 
 /* Typedefs for visiting objects */
 typedef herr_t (*h5trav_obj_func_t)(const char *path_name, const H5O_info_t *oinfo,
@@ -43,6 +44,10 @@ typedef enum {
     H5TRAV_TYPE_LINK,           /* Object is a symbolic link */
     H5TRAV_TYPE_UDLINK          /* Object is a user-defined link */
 } h5trav_type_t;
+
+/* maximum of two, three, or four values */
+#undef MAX
+#define MAX(a,b)		(((a)>(b)) ? (a) : (b))
 
 /*-------------------------------------------------------------------------
  * public struct to store name and type of an object
@@ -188,3 +193,71 @@ H5TOOLS_DLL void trav_table_addflags(unsigned *flags,
 
 #endif  /* H5TRAV_H__ */
 
+#ifndef HDrealloc
+#define HDrealloc(M,Z)		realloc(M,Z)
+#endif /* HDrealloc */
+
+#ifndef HDstrdup
+#define HDstrdup(S)     strdup(S)
+#endif /* HDstrdup */
+
+#ifndef HDstrcat
+#define HDstrcat(X,Y)		strcat(X,Y)
+#endif /* HDstrcat */
+#ifndef HDstrchr
+#define HDstrchr(S,C)		strchr(S,C)
+#endif /* HDstrchr */
+#ifndef HDstrcmp
+#define HDstrcmp(X,Y)		strcmp(X,Y)
+#endif /* HDstrcmp */
+#ifndef HDstrcasecmp
+#define HDstrcasecmp(X,Y)       strcasecmp(X,Y)
+#endif /* HDstrcasecmp */
+#ifndef HDstrcoll
+#define HDstrcoll(X,Y)		strcoll(X,Y)
+#endif /* HDstrcoll */
+#ifndef HDstrcpy
+#define HDstrcpy(X,Y)		strcpy(X,Y)
+#endif /* HDstrcpy */
+#ifndef HDstrcspn
+#define HDstrcspn(X,Y)		strcspn(X,Y)
+#endif /* HDstrcspn */
+#ifndef HDstrerror
+#define HDstrerror(N)		strerror(N)
+#endif /* HDstrerror */
+#ifndef HDstrftime
+#define HDstrftime(S,Z,F,T)	strftime(S,Z,F,T)
+#endif /* HDstrftime */
+#ifndef HDstrlen
+#define HDstrlen(S)		strlen(S)
+#endif /* HDstrlen */
+#ifndef HDstrncat
+#define HDstrncat(X,Y,Z)	strncat(X,Y,Z)
+#endif /* HDstrncat */
+#ifndef HDstrncmp
+#define HDstrncmp(X,Y,Z)	strncmp(X,Y,Z)
+#endif /* HDstrncmp */
+#ifndef HDstrncpy
+#define HDstrncpy(X,Y,Z)	strncpy(X,Y,Z)
+#endif /* HDstrncpy */
+#ifndef HDstrpbrk
+#define HDstrpbrk(X,Y)		strpbrk(X,Y)
+#endif /* HDstrpbrk */
+#ifndef HDstrrchr
+#define HDstrrchr(S,C)		strrchr(S,C)
+#endif /* HDstrrchr */
+#ifndef HDstrspn
+#define HDstrspn(X,Y)		strspn(X,Y)
+#endif /* HDstrspn */
+#ifndef HDstrstr
+#define HDstrstr(X,Y)		strstr(X,Y)
+#endif /* HDstrstr */
+#ifndef HDstrtod
+#define HDstrtod(S,R)		strtod(S,R)
+#endif /* HDstrtod */
+#ifndef HDstrtok
+#define HDstrtok(X,Y)		strtok(X,Y)
+#endif /* HDstrtok */
+#ifndef HDstrtol
+#define HDstrtol(S,R,N)		strtol(S,R,N)
+#endif /* HDstrtol */
