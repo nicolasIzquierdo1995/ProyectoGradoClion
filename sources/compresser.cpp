@@ -1,12 +1,12 @@
-
+#include "../headers/h5_repack_copy.hpp"
 #include "../headers/compresser.hpp"
-#include "../headers/utils.hpp"
 #include <iostream>
 #include <boost/algorithm/string/replace.hpp>
 using namespace std;
 using namespace compresser;
 using namespace H5;
 using namespace utils;
+using namespace h5repack;
 
 struct eventData {
     int start;
@@ -83,12 +83,19 @@ void gzipCompression(H5File file){
     dataSet2->write(eventsBuffer,eventDataType);
 }
 
+void repack(H5File file) {
+    h5repack::copy_objects(file,"cuco",NULL);
+}
+
 void Compresser::CompressFile(H5File file, int compressionLevel){
 
     if(compressionLevel == 0){
         stats(file);
     }else if(compressionLevel == 1){
-        gzipCompression(file);
+        //gzipCompression(file);
+        repack(file);
     }   
 
 }
+
+

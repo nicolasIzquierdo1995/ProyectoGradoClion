@@ -24,8 +24,8 @@ int main (int argc, char* argv[])
         comp->CompressFile(args->file, args->compressionLevel);
     }
     else {
-        int fileCount = Utils::GetFilesCount(argv[1]);
-        string* fileArray = Utils::GetFileArray(argv[1], fileCount);
+        int fileCount = 1;//Utils::GetFilesCount(argv[1]);
+        string* fileArray = NULL;//Utils::GetFileArray(argv[1], fileCount);
         future<void> promisesArray[fileCount];
 
         for (int j = 0; j < fileCount; j++) {

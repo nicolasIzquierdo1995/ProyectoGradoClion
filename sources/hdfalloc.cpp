@@ -2,8 +2,10 @@
 #define __MALDEBUG__
 #endif
 
-#include "stdio.h";
-
+#include "../headers/hdfalloc.hpp"
+#include <cstdlib>
+#include <cstring>
+using namespace hdfalloc;
 /*
 EXPORTED ROUTINES
   HDmemfill    -- copy a chunk of memory repetitively into another chunk
@@ -43,8 +45,7 @@ EXPORTED ROUTINES
  EXAMPLES
  REVISION LOG
 --------------------------------------------------------------------------*/
-void *
-HDmemfill(void * dest, const void * src, int item_size, int num_items)
+void * hdfalloc::HDmemfill(void * dest, const void * src, int item_size, int num_items)
 {
     int      copy_size;      /* size of the buffer to copy */
     int      copy_items;     /* number of items currently copying */
@@ -100,8 +101,7 @@ HDmemfill(void * dest, const void * src, int item_size, int num_items)
     Sep 19, 11 - Changed last argument's type from int32 to intn.  It didn't
     make sense to have to cast in most places. -BMR
 --------------------------------------------------------------------------*/
-char *
-HIstrncpy(char *dest, const char *source, int len)
+char * hdfalloc::HIstrncpy(char *dest, const char *source, int len)
 {
     char       *destp;
 
@@ -135,15 +135,13 @@ HIstrncpy(char *dest, const char *source, int len)
  EXAMPLES
  REVISION LOG
 --------------------------------------------------------------------------*/
-void * HDmalloc(uint32 qty)
+void * hdfalloc::HDmalloc(int qty)
 {
     char FUNC[]="HDmalloc";
     char *p;
 
     p = (char *) malloc(qty);
     if (p== (char *) NULL) {
-        HEreport("Attempted to allocate %d bytes", qty);
-        HRETURN_ERROR(DFE_NOSPACE,NULL);
       } /* end if */
     return(p);
 }   /* end HDmalloc() */
@@ -166,15 +164,13 @@ void * HDmalloc(uint32 qty)
  EXAMPLES
  REVISION LOG
 --------------------------------------------------------------------------*/
-void * HDrealloc(void * where, uint32 qty)
+void * hdfalloc::HDrealloc(void * where, int qty)
 {
     char FUNC[]="HDrealloc";
     char *p;
 
     p = (char *) realloc(where, qty);
     if (p== (char *) NULL) {
-        HEreport("Attempted to re-allocate %d bytes", qty);
-        HRETURN_ERROR(DFE_NOSPACE,NULL);
       } /* end if */
     return(p);
 }   /* end HDrealloc() */
@@ -195,7 +191,7 @@ void * HDrealloc(void * where, uint32 qty)
  EXAMPLES
  REVISION LOG
 --------------------------------------------------------------------------*/
-void HDfree(void * ptr)
+void hdfalloc::HDfree(void * ptr)
 {
     if (ptr!=NULL)
         free(ptr);
@@ -220,8 +216,7 @@ void HDfree(void * ptr)
  EXAMPLES
  REVISION LOG
 --------------------------------------------------------------------------*/
-void *
-HDcalloc(uint32 n, uint32 size)
+void * hdfalloc::HDcalloc(int n, int size)
 {
     char        FUNC[] = "HDcalloc";
     void *       p;
@@ -229,11 +224,10 @@ HDcalloc(uint32 n, uint32 size)
     p = HDmalloc(n * size);
     if (p == NULL)
       {
-          HEreport("Attempted to allocate %d blocks of %d bytes", (int) n, (int) size);
-          HRETURN_ERROR(DFE_NOSPACE, NULL);
+
       }     /* end if */
     else
-        HDmemset(p, 0, n * size);
+        memset(p, 0, n * size);
     return (p);
 }   /* end HDcalloc() */
 
@@ -253,8 +247,7 @@ HDcalloc(uint32 n, uint32 size)
  EXAMPLES
  REVISION LOG
 --------------------------------------------------------------------------*/
-char       *
-HDstrdup(const char *s)
+char* hdfalloc::HDstrdup(const char *s)
 {
     char *ret;
 
@@ -263,11 +256,11 @@ HDstrdup(const char *s)
         return(NULL);
 
     /* Allocate space */
-    ret = (char *) HDmalloc((uint32) HDstrlen(s) + 1);
+    ret = (char *) HDmalloc((int) strlen(s) + 1);
     if (ret == NULL)
         return (NULL);
 
     /* Copy the original string and return it */
-    HDstrcpy(ret, s);
+    strcpy(ret, s);
     return (ret);
 }   /* end HDstrdup() */

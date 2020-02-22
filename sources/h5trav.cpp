@@ -1,18 +1,23 @@
 #include "../headers/h5trav.hpp"
+#include "../headers/hdfalloc.hpp"
 #include "../headers/utils.hpp"
 using namespace std;
 using namespace H5;
+using namespace hdfalloc;
+using namespace h5trav;
 /*-------------------------------------------------------------------------
  * local typedefs
  *-------------------------------------------------------------------------
  */
+typedef struct trav_addr_t_obj {
+    haddr_t addr;
+    char *path;
+} trav_addr_t_obj;
+
 typedef struct trav_addr_t {
     size_t      nalloc;
     size_t      nused;
-    struct {
-        haddr_t addr;
-        char *path;
-    } *objs;
+    trav_addr_t_obj *objs;
 } trav_addr_t;
 
 typedef struct {
@@ -72,7 +77,7 @@ trav_addr_add(trav_addr_t *visited, haddr_t addr, const char *path)
     /* Allocate space if necessary */
     if(visited->nused == visited->nalloc) {
         visited->nalloc = MAX(1, visited->nalloc * 2);;
-        visited->objs = HDrealloc(visited->objs, visited->nalloc * sizeof(visited->objs[0]));
+        visited->objs = (trav_addr_t_obj*)HDrealloc(visited->objs, visited->nalloc * sizeof(visited->objs[0]));
     } /* end if */
 
     /* Append it */
@@ -136,7 +141,7 @@ traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linfo,
         size_t base_len = HDstrlen(udata->base_grp_name);
         size_t add_slash = base_len ? ((udata->base_grp_name)[base_len-1] != '/') : 1;
 
-        if(NULL == (new_name = HDmalloc(base_len + add_slash + HDstrlen(path) + 1)))
+        if(NULL == (new_name = (char*)HDmalloc(base_len + add_slash + HDstrlen(path) + 1)))
             return(H5_ITER_ERROR);
         HDstrcpy(new_name, udata->base_grp_name);
         if (add_slash)
@@ -308,9 +313,8 @@ trav_info_add(trav_info_t *info, const char *path, h5trav_type_t obj_type)
  *
  *-------------------------------------------------------------------------
  */
-int
-trav_info_visit_obj(const char *path, const H5O_info_t *oinfo,
-    const char UNUSED *already_visited, void *udata)
+int h5trav::trav_info_visit_obj(const char *path, const H5O_info_t *oinfo,
+    const char *already_visited, void *udata)
 {
     /* Add the object to the 'info' struct */
     /* (object types map directly to "traversal" types) */
@@ -333,8 +337,7 @@ trav_info_visit_obj(const char *path, const H5O_info_t *oinfo,
  *
  *-------------------------------------------------------------------------
  */
-int
-trav_info_visit_lnk(const char *path, const H5L_info_t *linfo, void *udata)
+int h5trav::trav_info_visit_lnk(const char *path, const H5L_info_t *linfo, void *udata)
 {
     /* Add the link to the 'info' struct */
     trav_info_add((trav_info_t *)udata, path, ((linfo->type == H5L_TYPE_SOFT) ? H5TRAV_TYPE_LINK : H5TRAV_TYPE_UDLINK));
@@ -526,7 +529,7 @@ trav_table_visit_obj(const char *path, const H5O_info_t *oinfo,
  *-------------------------------------------------------------------------
  */
 static int
-trav_table_visit_lnk(const char *path, const H5L_info_t UNUSED *linfo, void *udata)
+trav_table_visit_lnk(const char *path, const H5L_info_t *linfo, void *udata)
 {
     /* Add the link to the 'table' struct */
     trav_table_add((trav_table_t *) udata, path, NULL);
@@ -549,8 +552,7 @@ trav_table_visit_lnk(const char *path, const H5L_info_t UNUSED *linfo, void *uda
  *-------------------------------------------------------------------------
  */
 
-int
-h5trav_gettable(hid_t fid, trav_table_t *table)
+int h5trav::h5trav_gettable(hid_t fid, trav_table_t *table)
 {
     trav_visitor_t table_visitor;       /* Visitor structure for trav_table_t's */
 
@@ -631,21 +633,21 @@ trav_table_add(trav_table_t *table,
                     const char *path,
                     const H5O_info_t *oinfo)
 {
-    size_t new;
+    size_t pepito;
 
     if(table->nobjs == table->size) {
         table->size = MAX(1, table->size * 2);
         table->objs = (trav_obj_t*)HDrealloc(table->objs, table->size * sizeof(trav_obj_t));
     } /* end if */
 
-    new = table->nobjs++;
-    table->objs[new].objno = oinfo ? oinfo->addr : HADDR_UNDEF;
-    table->objs[new].flags[0] = table->objs[new].flags[1] = 0;
-    table->objs[new].name = (char *)HDstrdup(path);
-    table->objs[new].type = oinfo ? (h5trav_type_t)oinfo->type : H5TRAV_TYPE_LINK;
-    table->objs[new].nlinks = 0;
-    table->objs[new].sizelinks = 0;
-    table->objs[new].links = NULL;
+    pepito = table->nobjs++;
+    table->objs[pepito].objno = oinfo ? oinfo->addr : HADDR_UNDEF;
+    table->objs[pepito].flags[0] = table->objs[pepito].flags[1] = 0;
+    table->objs[pepito].name = (char *)HDstrdup(path);
+    table->objs[pepito].type = oinfo ? (h5trav_type_t)oinfo->type : H5TRAV_TYPE_LINK;
+    table->objs[pepito].nlinks = 0;
+    table->objs[pepito].sizelinks = 0;
+    table->objs[pepito].links = NULL;
 }
 
 /*-------------------------------------------------------------------------
@@ -689,7 +691,7 @@ trav_table_addlink(trav_table_t *table, haddr_t objno, const char *path)
         } /* end for */
     } /* end for */
 
-    HDassert(0 && "object not in table?!?");
+    assert(0 && "object not in table?!?");
 }
 
 
@@ -713,22 +715,22 @@ void trav_table_addflags(unsigned *flags,
                          h5trav_type_t type,
                          trav_table_t *table)
 {
-    unsigned int new;
+    unsigned int pepito;
 
     if(table->nobjs == table->size) {
         table->size = MAX(1, table->size * 2);
         table->objs = (trav_obj_t *)HDrealloc(table->objs, table->size * sizeof(trav_obj_t));
     } /* end if */
 
-    new = table->nobjs++;
-    table->objs[new].objno = 0;
-    table->objs[new].flags[0] = flags[0];
-    table->objs[new].flags[1] = flags[1];
-    table->objs[new].name = (char *)HDstrdup(name);
-    table->objs[new].type = type;
-    table->objs[new].nlinks = 0;
-    table->objs[new].sizelinks = 0;
-    table->objs[new].links = NULL;
+    pepito = table->nobjs++;
+    table->objs[pepito].objno = 0;
+    table->objs[pepito].flags[0] = flags[0];
+    table->objs[pepito].flags[1] = flags[1];
+    table->objs[pepito].name = (char *)HDstrdup(name);
+    table->objs[pepito].type = type;
+    table->objs[pepito].nlinks = 0;
+    table->objs[pepito].sizelinks = 0;
+    table->objs[pepito].links = NULL;
 }
 
 
@@ -810,7 +812,7 @@ void trav_table_free( trav_table_t *table )
  */
 static int
 trav_print_visit_obj(const char *path, const H5O_info_t *oinfo,
-    const char *already_visited, void UNUSED *udata)
+    const char *already_visited, void *udata)
 {
     /* Print the name of the object */
     /* (no new-line, so that objects that we've encountered before can print
@@ -868,8 +870,8 @@ trav_print_visit_lnk(const char *path, const H5L_info_t *linfo, void *udata)
     switch(linfo->type) {
         case H5L_TYPE_SOFT:
             if(linfo->u.val_size > 0) {
-                char *targbuf = HDmalloc(linfo->u.val_size + 1);
-                HDassert(targbuf);
+                char *targbuf = (char*)HDmalloc(linfo->u.val_size + 1);
+                assert(targbuf);
 
                 H5Lget_val(print_udata->fid, path, targbuf, linfo->u.val_size + 1, H5P_DEFAULT);
                 printf(" %-10s %s -> %s\n", "link", path, targbuf);
@@ -885,7 +887,7 @@ trav_print_visit_lnk(const char *path, const H5L_info_t *linfo, void *udata)
                 const char *filename;
                 const char *objname;
 
-                targbuf = HDmalloc(linfo->u.val_size + 1);
+                targbuf = (char*)HDmalloc(linfo->u.val_size + 1);
                 assert(targbuf);
 
                 H5Lget_val(print_udata->fid, path, targbuf, linfo->u.val_size + 1, H5P_DEFAULT);
@@ -1011,7 +1013,7 @@ symlink_visit_add(symlink_trav_t *visited, H5L_type_t type, const char *file, co
         visited->nalloc = MAX(1, visited->nalloc * 2);
         if(NULL == (tmp_ptr = HDrealloc(visited->objs, visited->nalloc * sizeof(visited->objs[0]))))
             return -1;
-        visited->objs = tmp_ptr;
+        visited->objs = (symlink_trav_t_obj *)tmp_ptr;
     } /* end if */
 
     /* Append it */
