@@ -481,7 +481,7 @@ int do_copy_objects(hid_t fidin,
                 * and copy its attributes using that ID
                 *-------------------------------------------------------------------------
                 */
-                if(HDstrcmp(travt->objs[i].name, "/") == 0)
+                if(strcmp(travt->objs[i].name, "/") == 0)
                 {
                     if ((grp_out = H5Gopen2(fidout, "/", H5P_DEFAULT)) < 0)
                         return do_copy_objects_error(grp_in, grp_out, dcpl_id, gcpl_in, gcpl_out, f_space_id, dset_in, dset_out, ftype_id, wtype_id, type_in, type_out, named_dt_head, buf, sm_buf);

@@ -130,15 +130,15 @@ static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linf
 
     /* Create the full path name for the link */
     if(udata->is_absolute) {
-        size_t base_len = HDstrlen(udata->base_grp_name);
+        size_t base_len = strlen(udata->base_grp_name);
         size_t add_slash = base_len ? ((udata->base_grp_name)[base_len-1] != '/') : 1;
 
-        if(NULL == (new_name = (char*)HDmalloc(base_len + add_slash + HDstrlen(path) + 1)))
+        if(NULL == (new_name = (char*)HDmalloc(base_len + add_slash + strlen(path) + 1)))
             return(H5_ITER_ERROR);
-        HDstrcpy(new_name, udata->base_grp_name);
+        strcpy(new_name, udata->base_grp_name);
         if (add_slash)
             new_name[base_len] = '/';
-        HDstrcpy(new_name + base_len + add_slash, path);
+        strcpy(new_name + base_len + add_slash, path);
         full_name = new_name;
     } /* end if */
     else
@@ -398,7 +398,7 @@ static void trav_table_addlink(trav_table_t *table, haddr_t objno, const char *p
             size_t n;
 
             /* already inserted? */
-            if(HDstrcmp(table->objs[i].name, path) == 0)
+            if(strcmp(table->objs[i].name, path) == 0)
                 return;
 
             /* allocate space if necessary */
