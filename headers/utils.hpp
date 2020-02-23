@@ -11,6 +11,6 @@ namespace utils{
         static int GetFilesCount(string path);
         static string* GetFileArray(string path, int fileCount);
         static bool IsInt(DataSet ds);
-        static char* getUIntDtype(int num);
+        static const char* getUIntDtype(int num);
   };
 }

@@ -56,8 +56,8 @@ bool Utils::IsInt(DataSet ds){
     return type_class == H5T_INTEGER;
 }
 
-char* Utils::getUIntDtype(int num){
-    char* name;
+const char* Utils::getUIntDtype(int num){
+    const char* name;
     if (num < 2^8){
         name = "char";
     }
