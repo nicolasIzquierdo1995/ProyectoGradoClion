@@ -292,3 +292,24 @@ void h5trav::trav_table_init(trav_table_t **tbl)
 
     *tbl = table;
 }
+
+void h5trav::trav_table_free( trav_table_t *table )
+{
+    if(table->objs) {
+        unsigned int i;
+
+        for(i = 0; i < table->nobjs; i++) {
+            HDfree(table->objs[i].name );
+            if(table->objs[i].nlinks) {
+                unsigned int j;
+
+                for(j = 0; j < table->objs[i].nlinks; j++)
+                    HDfree(table->objs[i].links[j].new_name);
+
+                HDfree(table->objs[i].links);
+            } /* end if */
+        } /* end for */
+        HDfree(table->objs);
+    } /* end if */
+    HDfree(table);
+}

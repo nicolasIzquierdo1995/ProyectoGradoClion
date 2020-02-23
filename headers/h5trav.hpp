@@ -51,7 +51,7 @@ namespace h5trav {
 
     int h5trav_gettable(hid_t fid, trav_table_t *travt);
     H5TOOLS_DLL void trav_table_init(trav_table_t **table);
-
+    void trav_table_free( trav_table_t *table );
 }
 
 #endif  /* H5TRAV_H__ */

@@ -1043,49 +1043,253 @@ int do_copy_objects(hid_t fidin,
     return 0;
 }
 
+int copy_objects_error(hid_t fapl, hid_t fcpl, hid_t fidin, hid_t fidout, trav_table_t * travt){
+    H5E_BEGIN_TRY
+        {
+            H5Pclose(fapl);
+            H5Pclose(fcpl);
+            H5Fclose(fidin);
+            H5Fclose(fidout);
+        } H5E_END_TRY;
+    if(travt)
+        trav_table_free(travt);
+    return -1;
+}
 
-int h5repack::copy_objects(H5File fidin,
+int h5repack::copy_objects(H5File fileIn,
                  const char* fnameout,
                  pack_opt_t *options)
 {
+    hid_t         fidin;
     hid_t         fidout = -1;
     trav_table_t  *travt = NULL;
     hsize_t       ub_size = 0;        /* size of user block */
     hid_t         fcpl = H5P_DEFAULT; /* file creation property list ID */
     hid_t         fapl = H5P_DEFAULT; /* file access property list ID */
 
+    /*-------------------------------------------------------------------------
+    * open input file
+    *-------------------------------------------------------------------------
+    */
+    fidin = fileIn.getId();
 
     /* get user block size */
-    FileCreatPropList fcpl_in; /* file creation property list ID for input file */
+    {
+        hid_t fcpl_in; /* file creation property list ID for input file */
 
-    fcpl_in = fidin.getCreatePlist();
+        if((fcpl_in = H5Fget_create_plist(fidin)) < 0)
+        {
+            return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+        }
 
-    ub_size = fcpl_in.getUserblock();
+        if(H5Pget_userblock(fcpl_in, &ub_size) < 0)
+        {
+            return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+        }
 
-    fcpl_in.close();
+        if(H5Pclose(fcpl_in) < 0)
+        {
+            return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+        }
+    }
+
+    /* Check if we need to create a non-default file creation property list */
+    if(options->latest || ub_size > 0)
+    {
+        /* Create file creation property list */
+        if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0)
+        {
+            return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+        }
+
+        if(ub_size > 0)
+        {
+            if(H5Pset_userblock(fcpl, ub_size) < 0)
+            {
+                return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+            }
+        }
+
+        if(options->latest)
+        {
+            unsigned i = 0, nindex = 0, mesg_type_flags[5], min_mesg_sizes[5];
+
+            /* Adjust group creation parameters for root group */
+            /* (So that it is created in "dense storage" form) */
+            if(H5Pset_link_phase_change(fcpl, (unsigned)options->grp_compact, (unsigned)options->grp_indexed) < 0)
+            {
+                return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+            }
+
+            for(i = 0; i < 5; i++)
+            {
+                if(options->msg_size[i] > 0)
+                {
+                    switch(i)
+                    {
+                        case 0:
+                            mesg_type_flags[nindex] = H5O_SHMESG_SDSPACE_FLAG;
+                            break;
+
+                        case 1:
+                            mesg_type_flags[nindex] = H5O_SHMESG_DTYPE_FLAG;
+                            break;
+
+                        case 2:
+                            mesg_type_flags[nindex] = H5O_SHMESG_FILL_FLAG;
+                            break;
+
+                        case 3:
+                            mesg_type_flags[nindex] = H5O_SHMESG_PLINE_FLAG;
+                            break;
+
+                        case 4:
+                            mesg_type_flags[nindex] = H5O_SHMESG_ATTR_FLAG;
+                            break;
+                        default:
+                            break;
+                    } /* end switch */
+                    min_mesg_sizes[nindex] = (unsigned)options->msg_size[i];
+
+                    nindex++;
+                } /* end if */
+            } /* end for */
+
+            if(nindex > 0)
+            {
+                if(H5Pset_shared_mesg_nindexes(fcpl, nindex) < 0)
+                {
+                    return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+                }
+
+                /* msg_size[0]=dataspace, 1=datatype, 2=file value, 3=filter pipleline, 4=attribute */
+                for(i = 0; i < (nindex - 1); i++)
+                {
+                    if(H5Pset_shared_mesg_index(fcpl, i, mesg_type_flags[i], min_mesg_sizes[i]) < 0) {
+                        return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+                    } /* end if */
+                } /* end for */
+            } /* if (nindex>0) */
+
+            /* Create file access property list */
+            if((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0)
+            {
+                return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+            } /* end if */
+
+            if(H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0)
+            {
+                return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+            } /* end if */
+        } /* end if */
+    } /* end if */
+
+    /*-------------------------------------------------------------------------
+    * set the new user userblock options in the FCPL (before H5Fcreate )
+    *-------------------------------------------------------------------------
+    */
+
+    if ( options->ublock_size > 0 )
+    {
+        /* either use the FCPL already created or create a new one */
+        if(fcpl != H5P_DEFAULT)
+        {
+            /* set user block size */
+            if(H5Pset_userblock(fcpl, options->ublock_size) < 0)
+            {
+                return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+            }
+
+        }
+
+        else
+        {
+
+            /* create a file creation property list */
+            if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0)
+            {
+                return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+            }
+
+            /* set user block size */
+            if(H5Pset_userblock(fcpl, options->ublock_size) < 0)
+            {
+                return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+            }
+
+        }
 
 
 
-    /* creo archivo de salida */
-    H5File* compressedFile = new H5File("path",H5F_ACC_RDWR);
-    FileCreatPropList fcpl_out = compressedFile->getCreatePlist(); /* file creation property list ID for output file */
+    }
 
-    /* set the new user userblock options in the FCPL */
 
-    fcpl_out.setUserblock(options->ublock_size);
+    /*-------------------------------------------------------------------------
+    * set alignment options
+    *-------------------------------------------------------------------------
+    */
 
-    /* set alignment options  */
 
-    FileAccPropList fapl_out = compressedFile->getAccessPlist(); /* file creation property list ID for output file */
-    fapl_out.setAlignment(options->threshold, options->alignment);
+    if (  options->alignment > 0 )
+    {
+        /* either use the FAPL already created or create a new one */
+        if (fapl != H5P_DEFAULT)
+        {
+
+            if (H5Pset_alignment(fapl, options->threshold, options->alignment) < 0)
+            {
+                return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+            }
+
+        }
+
+        else
+        {
+
+            /* create a file access property list */
+            if ((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0)
+            {
+                return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+            }
+
+            if (H5Pset_alignment(fapl, options->threshold, options->alignment) < 0)
+            {
+                return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+            }
+
+        }
+
+    }
+
+
+    /*-------------------------------------------------------------------------
+    * create the output file
+    *-------------------------------------------------------------------------
+    */
+
+
+    if(options->verbose)
+        printf("Making file <%s>...\n",fnameout);
+
+
+    if((fidout = H5Fcreate(fnameout,H5F_ACC_TRUNC, fcpl, fapl)) < 0)
+    {
+        return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+    }
 
 
     /*-------------------------------------------------------------------------
     * write a new user block if requested
     *-------------------------------------------------------------------------
     */
+    if ( options->ublock_size > 0  )
+    {
+        if ( copy_user_block( options->ublock_filename, fnameout, options->ublock_size) < 0 )
+        {
+            return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
 
-    copy_user_block( options->ublock_filename, fnameout, options->ublock_size);
+        }
+    }
 
     /*-------------------------------------------------------------------------
     * get list of objects
@@ -1096,13 +1300,29 @@ int h5repack::copy_objects(H5File fidin,
     trav_table_init(&travt);
 
     /* get the list of objects in the file */
-    h5trav_gettable(fidin.getId(), travt);
+    if(h5trav_gettable(fidin, travt) < 0)
+        return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
 
     /*-------------------------------------------------------------------------
     * do the copy
     *-------------------------------------------------------------------------
     */
-    do_copy_objects(fidin.getId(), fidout, travt, options);
+    if(do_copy_objects(fidin, fidout, travt, options) < 0)
+    {
+        return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+    } /* end if */
+
+    /*-------------------------------------------------------------------------
+    * do the copy of referenced objects
+    * and create hard links
+    *-------------------------------------------------------------------------
+    */
+
+    /*-------------------------------------------------------------------------
+    * do the copy
+    *-------------------------------------------------------------------------
+    */
+    do_copy_objects(fidin, fidout, travt, options);
 
 
     /* close */
@@ -1113,7 +1333,7 @@ int h5repack::copy_objects(H5File fidin,
     if(fcpl > 0)
         H5Pclose(fcpl);
 
-    H5Fclose(fidin.getId());
+    H5Fclose(fidin);
     H5Fclose(fidout);
     return 0;
 }
