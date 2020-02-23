@@ -2,23 +2,10 @@
 #define H5TRAV_H__
 
 #include "hdf5.h"
-
-#ifdef H5_STDC_HEADERS
-#   include <assert.h>
-#   include <ctype.h>
-#   include <errno.h>
-#   include <fcntl.h>
-#   include <float.h>
-#   include <limits.h>
-#   include <math.h>
-#   include <signal.h>
-#   include <stdarg.h>
-#   include <stdio.h>
-#   include <stdlib.h>
-#   include <string.h>
-#endif
-
-
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <fcntl.h>
 
 /* Typedefs for visiting objects */
 typedef herr_t (*h5trav_obj_func_t)(const char *path_name, const H5O_info_t *oinfo,
@@ -40,19 +27,9 @@ typedef enum {
 #define MAX(a,b)		(((a)>(b)) ? (a) : (b))
 
 
-/*-------------------------------------------------------------------------
- * keep record of hard link information
- *-------------------------------------------------------------------------
- */
 typedef struct trav_link_t {
     char      *new_name;
 } trav_link_t;
-
-
-/*-------------------------------------------------------------------------
- * struct to store basic info needed for the h5trav table traversal algorythm
- *-------------------------------------------------------------------------
- */
 
 typedef struct trav_obj_t {
     haddr_t     objno;     /* object address */
@@ -64,53 +41,16 @@ typedef struct trav_obj_t {
     size_t      nlinks;    /* number of links */
 } trav_obj_t;
 
-
-/*-------------------------------------------------------------------------
- * private struct that stores all objects
- *-------------------------------------------------------------------------
- */
-
 typedef struct trav_table_t {
     size_t      size;
     size_t      nobjs;
     trav_obj_t *objs;
 } trav_table_t;
 
-
-/*-------------------------------------------------------------------------
- * public functions
- *-------------------------------------------------------------------------
- */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 namespace h5trav {
 
-/*-------------------------------------------------------------------------
- * "h5trav table" public functions
- *-------------------------------------------------------------------------
- */
-
-int h5trav_gettable(hid_t fid, trav_table_t *travt);
-
-/*-------------------------------------------------------------------------
- * "h5trav print" public functions
- *-------------------------------------------------------------------------
- */
-
-#ifdef __cplusplus
-}
-#endif
-
-
-/*-------------------------------------------------------------------------
- * table private functions
- *-------------------------------------------------------------------------
- */
-
-H5TOOLS_DLL void trav_table_init(trav_table_t **table);
+    int h5trav_gettable(hid_t fid, trav_table_t *travt);
+    H5TOOLS_DLL void trav_table_init(trav_table_t **table);
 
 }
 

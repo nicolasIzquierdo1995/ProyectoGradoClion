@@ -1,6 +1,7 @@
 #include "../headers/h5trav.hpp"
 #include "../headers/hdfalloc.hpp"
 #include "../headers/utils.hpp"
+#include <assert.h>
 using namespace std;
 using namespace H5;
 using namespace hdfalloc;
@@ -38,32 +39,56 @@ typedef struct {
     hid_t fid;                      /* File ID being traversed */
 } trav_print_udata_t;
 
-/*-------------------------------------------------------------------------
- * local functions
- *-------------------------------------------------------------------------
- */
 static void trav_table_add(trav_table_t *table,
-                        const char *objname,
-                        const H5O_info_t *oinfo);
+                           const char *path,
+                           const H5O_info_t *oinfo)
+{
+    size_t newone;
 
-static void trav_table_addlink(trav_table_t *table,
-                        haddr_t objno,
-                        const char *path);
+    if(table->nobjs == table->size) {
+        table->size = MAX(1, table->size * 2);
+        table->objs = (trav_obj_t*)HDrealloc(table->objs, table->size * sizeof(trav_obj_t));
+    } /* end if */
 
+    newone = table->nobjs++;
+    table->objs[newone].objno = oinfo ? oinfo->addr : HADDR_UNDEF;
+    table->objs[newone].flags[0] = table->objs[newone].flags[1] = 0;
+    table->objs[newone].name = (char *)HDstrdup(path);
+    table->objs[newone].type = oinfo ? (h5trav_type_t)oinfo->type : H5TRAV_TYPE_LINK;
+    table->objs[newone].nlinks = 0;
+    table->objs[newone].sizelinks = 0;
+    table->objs[newone].links = NULL;
+}
 
-/*-------------------------------------------------------------------------
- * Function: trav_addr_add
- *
- * Purpose: Add a hardlink address to visited data structure
- *
- * Return: void
- *
- * Programmer: Quincey Koziol, koziol@hdfgroup.org
- *
- * Date: September 1, 2007
- *
- *-------------------------------------------------------------------------
- */
+static void trav_table_addlink(trav_table_t *table, haddr_t objno, const char *path)
+{
+    size_t i;           /* Local index variable */
+
+    for(i = 0; i < table->nobjs; i++) {
+        if(table->objs[i].objno == objno) {
+            size_t n;
+
+            /* already inserted? */
+            if(strcmp(table->objs[i].name, path) == 0)
+                return;
+
+            /* allocate space if necessary */
+            if(table->objs[i].nlinks == (unsigned)table->objs[i].sizelinks) {
+                table->objs[i].sizelinks = MAX(1, table->objs[i].sizelinks * 2);
+                table->objs[i].links = (trav_link_t*)HDrealloc(table->objs[i].links, table->objs[i].sizelinks * sizeof(trav_link_t));
+            } /* end if */
+
+            /* insert it */
+            n = table->objs[i].nlinks++;
+            table->objs[i].links[n].new_name = (char *)HDstrdup(path);
+
+            return;
+        } /* end for */
+    } /* end for */
+
+    assert(0 && "object not in table?!?");
+}
+
 static void trav_addr_add(trav_addr_t *visited, haddr_t addr, const char *path)
 {
     size_t idx;         /* Index of address to use */
@@ -80,20 +105,6 @@ static void trav_addr_add(trav_addr_t *visited, haddr_t addr, const char *path)
     visited->objs[idx].path = HDstrdup(path);
 } /* end trav_addr_add() */
 
-
-/*-------------------------------------------------------------------------
- * Function: trav_addr_visited
- *
- * Purpose: Check if an address has already been visited
- *
- * Return: TRUE/FALSE
- *
- * Programmer: Quincey Koziol, koziol@hdfgroup.org
- *
- * Date: September 1, 2007
- *
- *-------------------------------------------------------------------------
- */
 static const char* trav_addr_visited(trav_addr_t *visited, haddr_t addr)
 {
     size_t u;           /* Local index variable */
@@ -108,18 +119,6 @@ static const char* trav_addr_visited(trav_addr_t *visited, haddr_t addr)
     return(NULL);
 } /* end trav_addr_visited() */
 
-
-/*-------------------------------------------------------------------------
- * Function: traverse_cb
- *
- * Purpose: Iterator callback for traversing objects in file
- *
- * Programmer: Quincey Koziol, koziol@hdfgroup.org
- *
- * Date: September 1, 2007
- *
- *-------------------------------------------------------------------------
- */
 static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linfo,
     void *_udata)
 {
@@ -186,21 +185,6 @@ static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linf
     return(H5_ITER_CONT);
 } /* end traverse_cb() */
 
-
-/*-------------------------------------------------------------------------
- * Function: traverse
- *
- * Purpose: Iterate over all the objects/links in a file.  Conforms to the
- *      "visitor" pattern.
- *
- * Return: 0 on success, -1 on failure
- *
- * Programmer: Quincey Koziol, koziol@hdfgroup.org
- *
- * Date: September 1, 2007
- *
- *-------------------------------------------------------------------------
- */
 static int traverse(hid_t file_id, const char *grp_name, hbool_t visit_start,
     hbool_t recurse, const trav_visitor_t *visitor)
 {
@@ -259,19 +243,6 @@ static int traverse(hid_t file_id, const char *grp_name, hbool_t visit_start,
     return 0;
 }
 
-/*-------------------------------------------------------------------------
- * Function: trav_table_visit_obj
- *
- * Purpose: Callback for visiting object, with 'table' sructure
- *
- * Return: 0 on success, -1 on failure
- *
- * Programmer: Quincey Koziol, koziol@hdfgroup.org
- *
- * Date: September 1, 2007
- *
- *-------------------------------------------------------------------------
- */
 static int trav_table_visit_obj(const char *path, const H5O_info_t *oinfo,
     const char *already_visited, void *udata)
 {
@@ -288,20 +259,6 @@ static int trav_table_visit_obj(const char *path, const H5O_info_t *oinfo,
     return(0);
 } /* end trav_table_visit_obj() */
 
-
-/*-------------------------------------------------------------------------
- * Function: trav_table_visit_lnk
- *
- * Purpose: Callback for visiting link, with 'table' sructure
- *
- * Return: 0 on success, -1 on failure
- *
- * Programmer: Quincey Koziol, koziol@hdfgroup.org
- *
- * Date: September 1, 2007
- *
- *-------------------------------------------------------------------------
- */
 static int trav_table_visit_lnk(const char *path, const H5L_info_t *linfo, void *udata)
 {
     /* Add the link to the 'table' struct */
@@ -309,21 +266,6 @@ static int trav_table_visit_lnk(const char *path, const H5L_info_t *linfo, void 
 
     return(0);
 } /* end trav_table_visit_lnk() */
-
-
-/*-------------------------------------------------------------------------
- * Function: h5trav_gettable
- *
- * Purpose: get the trav_table_t struct
- *
- * Return: 0, -1 on error
- *
- * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
- *
- * Date: December 17, 2003
- *
- *-------------------------------------------------------------------------
- */
 
 int h5trav::h5trav_gettable(hid_t fid, trav_table_t *table)
 {
@@ -340,100 +282,7 @@ int h5trav::h5trav_gettable(hid_t fid, trav_table_t *table)
     return 0;
 }
 
-/*-------------------------------------------------------------------------
- * Function: trav_table_add
- *
- * Purpose: Add OBJNO, NAME and TYPE of object to table
- *
- * Return: void
- *
- * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
- *
- * Date: November 4, 2002
- *
- *-------------------------------------------------------------------------
- */
-
-static void trav_table_add(trav_table_t *table,
-                    const char *path,
-                    const H5O_info_t *oinfo)
-{
-    size_t newone;
-
-    if(table->nobjs == table->size) {
-        table->size = MAX(1, table->size * 2);
-        table->objs = (trav_obj_t*)HDrealloc(table->objs, table->size * sizeof(trav_obj_t));
-    } /* end if */
-
-    newone = table->nobjs++;
-    table->objs[newone].objno = oinfo ? oinfo->addr : HADDR_UNDEF;
-    table->objs[newone].flags[0] = table->objs[newone].flags[1] = 0;
-    table->objs[newone].name = (char *)HDstrdup(path);
-    table->objs[newone].type = oinfo ? (h5trav_type_t)oinfo->type : H5TRAV_TYPE_LINK;
-    table->objs[newone].nlinks = 0;
-    table->objs[newone].sizelinks = 0;
-    table->objs[newone].links = NULL;
-}
-
-/*-------------------------------------------------------------------------
- * Function: trav_table_addlink
- *
- * Purpose: Add a hardlink name to the object
- *
- * Return: void
- *
- * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
- *
- * Date: December 17, 2003
- *
- *-------------------------------------------------------------------------
- */
-
-static void trav_table_addlink(trav_table_t *table, haddr_t objno, const char *path)
-{
-    size_t i;           /* Local index variable */
-
-    for(i = 0; i < table->nobjs; i++) {
-        if(table->objs[i].objno == objno) {
-            size_t n;
-
-            /* already inserted? */
-            if(strcmp(table->objs[i].name, path) == 0)
-                return;
-
-            /* allocate space if necessary */
-            if(table->objs[i].nlinks == (unsigned)table->objs[i].sizelinks) {
-                table->objs[i].sizelinks = MAX(1, table->objs[i].sizelinks * 2);
-                table->objs[i].links = (trav_link_t*)HDrealloc(table->objs[i].links, table->objs[i].sizelinks * sizeof(trav_link_t));
-            } /* end if */
-
-            /* insert it */
-            n = table->objs[i].nlinks++;
-            table->objs[i].links[n].new_name = (char *)HDstrdup(path);
-
-            return;
-        } /* end for */
-    } /* end for */
-
-    assert(0 && "object not in table?!?");
-}
-
-
-/*-------------------------------------------------------------------------
- * Function: trav_table_init
- *
- * Purpose: Initialize the table
- *
- * Return: void
- *
- * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
- *
- * Date: November 4, 2002
- *
- *-------------------------------------------------------------------------
- */
-
-void trav_table_init(trav_table_t **tbl)
+void h5trav::trav_table_init(trav_table_t **tbl)
 {
     trav_table_t* table = (trav_table_t*) HDmalloc(sizeof(trav_table_t));
 
