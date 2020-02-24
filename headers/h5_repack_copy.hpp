@@ -75,5 +75,5 @@ namespace h5repack {
         struct named_dt_t *next;
     } named_dt_t;
 
-    int copy_objects(H5File fidin,const char* fnameout,pack_opt_t *options);
+    int copy_objects(H5File fidin,const char* fnameout);
 }

@@ -10,6 +10,7 @@ using namespace h5repack;
 #define USERBLOCK_XFER_SIZE 512
 
 hid_t copy_named_datatype(hid_t type_in, hid_t fidout, named_dt_t **named_dt_head_p, trav_table_t *travt, pack_opt_t *options) {
+
     named_dt_t* dt = *named_dt_head_p; /* Stack pointer */
     named_dt_t*  dt_ret = NULL;     /* Datatype to return */
     H5O_info_t  oinfo;              /* Object info of input dtype */
@@ -1056,9 +1057,47 @@ int copy_objects_error(hid_t fapl, hid_t fcpl, hid_t fidin, hid_t fidout, trav_t
     return -1;
 }
 
+void init_packobject(pack_info_t *obj) {
+    int j, k;
+
+    strcpy(obj->path, "\0");
+    for (j = 0; j < H5_REPACK_MAX_NFILTERS; j++) {
+        obj->filter[j].filtn = -1;
+        for (k = 0; k < CD_VALUES; k++)
+            obj->filter[j].cd_values[k] = 0;
+    }
+    obj->chunk.rank = -1;
+    obj->refobj_id = -1;
+    obj->layout = H5D_LAYOUT_ERROR;
+    obj->nfilters = 0;
+}
+
+pack_opt_t * createDefaultOptions(){
+    pack_opt_t * options = new pack_opt_t;
+    filter_info_t * filt = new filter_info_t;
+    filt->cd_nelmts = 1;
+    filt->filtn = H5Z_FILTER_DEFLATE;
+    filt->cd_values[0] = 9;
+    options->filter_g[0] = *filt;
+    options->n_filter_g++;
+    options->min_comp = 1024;
+
+
+    pack_opttbl_t *table = new pack_opttbl_t;
+    table->size =30;
+    table->nelems = 0;
+    table->objs = new pack_info_t;
+
+    for (int i = 0; i < table->size; i++)
+        init_packobject(&table->objs[i]);
+
+    options->op_tbl = table;
+
+    return options;
+}
+
 int h5repack::copy_objects(H5File fileIn,
-                 const char* fnameout,
-                 pack_opt_t *options)
+                 const char* fnameout)
 {
     hid_t         fidin;
     hid_t         fidout = -1;
@@ -1066,6 +1105,8 @@ int h5repack::copy_objects(H5File fileIn,
     hsize_t       ub_size = 0;        /* size of user block */
     hid_t         fcpl = H5P_DEFAULT; /* file creation property list ID */
     hid_t         fapl = H5P_DEFAULT; /* file access property list ID */
+
+    pack_opt_t * options = createDefaultOptions();
 
     /*-------------------------------------------------------------------------
     * open input file
@@ -1149,5 +1190,16 @@ int h5repack::copy_objects(H5File fileIn,
 
     H5Fclose(fidin);
     H5Fclose(fidout);
+
+    trav_table_free(travt);
+    travt = NULL;
+
+    if( ub_size > 0 && options->ublock_size == 0 )
+    {
+        if ( copy_user_block(fileIn.getFileName().c_str(), fnameout, ub_size) < 0 )
+        {
+            return copy_objects_error(fapl, fcpl, fidin, fidout, travt);
+        }
+    }
     return 0;
 }

@@ -84,7 +84,7 @@ void gzipCompression(H5File file){
 }
 
 void repack(H5File file) {
-    h5repack::copy_objects(file,"cuco",NULL);
+    h5repack::copy_objects(file,"../Files/cuco.fast5");
 }
 
 void Compresser::CompressFile(H5File file, int compressionLevel){
