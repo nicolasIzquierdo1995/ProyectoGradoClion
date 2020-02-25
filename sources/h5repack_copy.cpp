@@ -1074,14 +1074,15 @@ void init_packobject(pack_info_t *obj) {
 
 pack_opt_t * createDefaultOptions(){
     pack_opt_t * options = new pack_opt_t;
-    filter_info_t * filt = new filter_info_t;
-    filt->cd_nelmts = 1;
-    filt->filtn = H5Z_FILTER_DEFLATE;
-    filt->cd_values[0] = 9;
-    options->filter_g[0] = *filt;
-    options->n_filter_g++;
     options->min_comp = 1024;
 
+    for (int n = 0; n < H5_REPACK_MAX_NFILTERS; n++)
+    {
+        options->filter_g[n].filtn  = -1;
+        options->filter_g[n].cd_nelmts  = 0;
+        for (int k = 0; k < CD_VALUES; k++)
+            options->filter_g[n].cd_values[k] = 0;
+    }
 
     pack_opttbl_t *table = new pack_opttbl_t;
     table->size =30;
@@ -1092,6 +1093,13 @@ pack_opt_t * createDefaultOptions(){
         init_packobject(&table->objs[i]);
 
     options->op_tbl = table;
+
+    filter_info_t * filt = new filter_info_t;
+    filt->cd_nelmts = 1;
+    filt->filtn = H5Z_FILTER_DEFLATE;
+    filt->cd_values[0] = 9;
+    options->filter_g[0] = *filt;
+    options->n_filter_g++;
 
     return options;
 }
