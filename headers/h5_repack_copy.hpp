@@ -15,6 +15,8 @@ using namespace H5;
 #define CD_VALUES 20
 #define MAX_VAR_DIMS 32               /* max per variable dimensions */
 #define MAX_NC_NAME 256               /* max length of a name */
+#define NELMTS(X)    (sizeof(X)/sizeof(X[0]))
+const hsize_t H5TOOLS_BUFSIZE = 33554432;  /* 32 MB */
 
 namespace h5repack {
 
