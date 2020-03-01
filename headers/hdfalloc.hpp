@@ -6,7 +6,6 @@ using namespace std;
 namespace hdfalloc{
     void * HDmalloc(int qty);
     void * HDrealloc(void * where, int qty);
-    void HDfree(void * ptr);
     char * HDstrdup(const char *s);
 }
 

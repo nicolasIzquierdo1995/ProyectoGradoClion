@@ -150,7 +150,7 @@ static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linf
         /* Get information about the object */
         if(H5Oget_info_by_name(loc_id, path, &oinfo, H5P_DEFAULT) < 0) {
             if(new_name)
-                HDfree(new_name);
+                free(new_name);
             return(H5_ITER_ERROR);
         }
 
@@ -165,7 +165,7 @@ static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linf
         if(udata->visitor->visit_obj)
             if((*udata->visitor->visit_obj)(full_name, &oinfo, already_visited, udata->visitor->udata) < 0) {
                 if(new_name)
-                    HDfree(new_name);
+                    free(new_name);
                 return(H5_ITER_ERROR);
             }
     } /* end if */
@@ -174,13 +174,13 @@ static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linf
         if(udata->visitor->visit_lnk)
             if((*udata->visitor->visit_lnk)(full_name, linfo, udata->visitor->udata) < 0) {
                 if(new_name)
-                    HDfree(new_name);
+                    free(new_name);
                 return(H5_ITER_ERROR);
             }
     } /* end else */
 
     if(new_name)
-        HDfree(new_name);
+        free(new_name);
 
     return(H5_ITER_CONT);
 } /* end traverse_cb() */
@@ -235,8 +235,8 @@ static int traverse(hid_t file_id, const char *grp_name, hbool_t visit_start,
 
             /* Free paths to objects */
             for(u = 0; u < seen.nused; u++)
-                HDfree(seen.objs[u].path);
-            HDfree(seen.objs);
+                free(seen.objs[u].path);
+            free(seen.objs);
         } /* end if */
     } /* end if */
 
@@ -299,17 +299,17 @@ void h5trav::trav_table_free( trav_table_t *table )
         unsigned int i;
 
         for(i = 0; i < table->nobjs; i++) {
-            HDfree(table->objs[i].name );
+            free(table->objs[i].name );
             if(table->objs[i].nlinks) {
                 unsigned int j;
 
                 for(j = 0; j < table->objs[i].nlinks; j++)
-                    HDfree(table->objs[i].links[j].new_name);
+                    free(table->objs[i].links[j].new_name);
 
-                HDfree(table->objs[i].links);
+                free(table->objs[i].links);
             } /* end if */
         } /* end for */
-        HDfree(table->objs);
+        free(table->objs);
     } /* end if */
-    HDfree(table);
+    free(table);
 }

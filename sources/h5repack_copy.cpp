@@ -114,7 +114,7 @@ void named_datatype_free(named_dt_t **named_dt_head_p, int ignore_err)
         H5Tclose(dt->id_out);
 
         dt = dt->next;
-        HDfree(*named_dt_head_p);
+        free(*named_dt_head_p);
         *named_dt_head_p = dt;
     } /* end while */
 
@@ -510,9 +510,9 @@ static int do_copy_objects_error(hid_t grp_in, hid_t grp_out, hid_t dcpl_id, hid
     H5Tclose(type_out);
     named_datatype_free(&named_dt_head, 1);
     if (buf!=NULL)
-        HDfree(buf);
+        free(buf);
     if (sm_buf!=NULL)
-        HDfree(sm_buf);
+        free(sm_buf);
     return -1;
 }
 
@@ -939,7 +939,7 @@ int do_copy_objects(hid_t fidin,
                                     /* free */
                                     if (sm_buf!=NULL)
                                     {
-                                        HDfree(sm_buf);
+                                        free(sm_buf);
                                         sm_buf=NULL;
                                     }
                                 } /* hyperslab read */
@@ -1149,7 +1149,7 @@ int do_copy_objects(hid_t fidin,
         /* free */
         if (buf!=NULL)
         {
-            HDfree(buf);
+            free(buf);
             buf=NULL;
         }
 
