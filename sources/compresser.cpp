@@ -15,6 +15,11 @@ struct eventData {
     float stdv;
 };
 
+struct newEventData {
+    int skip;
+    int length;
+};
+
 Compresser::Compresser(){
 
 }
@@ -40,7 +45,7 @@ void stats(H5File file){
     }
 }
 
-void gzipCompression(H5File file){
+newEventData *getEventBuffer(H5File file, DataSet *eventsDataset) {
     string filePathCompressed = file.getFileName();
     boost::replace_all(filePathCompressed, ".fast5", "Compressed.fast5");
 
@@ -50,52 +55,74 @@ void gzipCompression(H5File file){
     eventDataType.insertMember("mean", HOFFSET(eventData,mean), PredType::NATIVE_FLOAT);
     eventDataType.insertMember("stdv", HOFFSET(eventData,stdv), PredType::NATIVE_FLOAT);
 
-    hsize_t chunk_dims[1] = {20};
-    DataSet* signalDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
-    DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
-
-    DataType signalDt = signalDataset->getDataType();
-    DataSpace* signalsDataSpace = new DataSpace(signalDataset->getSpace());
-    hsize_t signalDims[signalsDataSpace->getSimpleExtentNdims()];
-    signalsDataSpace->getSimpleExtentDims(signalDims);
-    int signalBuffer[signalDims[0]];
+    CompType newEventDataType(sizeof(newEventData));
+    newEventDataType.insertMember("skip", HOFFSET(newEventData, skip), PredType::NATIVE_INT);
+    newEventDataType.insertMember("length", HOFFSET(newEventData,length), PredType::NATIVE_INT);
 
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
     hsize_t eventsDims[eventsDataSpace->getSimpleExtentNdims()];
     eventsDataSpace->getSimpleExtentDims(eventsDims);
-    eventData* eventsBuffer = new eventData[(unsigned long)(eventsDims[0])];
+    unsigned long eventsCount = (unsigned long)(eventsDims[0]);
+    eventData* eventsBuffer = new eventData[eventsCount];
 
-    DSetCreatPropList* signalPlist = new DSetCreatPropList;
-    signalPlist->setDeflate(9);
-    signalPlist->setChunk(1, chunk_dims);
-
-    DSetCreatPropList* eventsPlist = new DSetCreatPropList;
-    eventsPlist->setDeflate(9);
-    eventsPlist->setChunk(1, chunk_dims);
-
-    signalDataset->read(signalBuffer,signalDt,*signalsDataSpace,*signalsDataSpace);
+    newEventData* newEventsBuffer = new newEventData[eventsCount];
     eventsDataset->read(eventsBuffer,eventDataType,*eventsDataSpace,*eventsDataSpace);
 
-    H5File* compressedFile = new H5File(filePathCompressed,H5F_ACC_TRUNC);
-    DataSet* dataSet1 = new DataSet(compressedFile->createDataSet("Signal",signalDt,*signalsDataSpace,*signalPlist));
-    dataSet1->write(signalBuffer,signalDt);
-    DataSet* dataSet2 = new DataSet(compressedFile->createDataSet("Events",eventDataType,*eventsDataSpace,*eventsPlist));
-    dataSet2->write(eventsBuffer,eventDataType);
+    for(int i = 0; i< eventsCount - 1; i++){
+        newEventsBuffer[i].skip = eventsBuffer[i+1].start - (eventsBuffer[i].start + eventsBuffer[i].length);
+        newEventsBuffer[i].length = eventsBuffer[i].length;
+    }
+
+    newEventsBuffer[eventsCount].skip = 0;
+    newEventsBuffer[eventsCount].length = eventsBuffer[eventsCount].length;
+
+    return newEventsBuffer;
 }
 
 void repack(H5File file) {
     h5repack::copy_objects(file,"../Files/cuco.fast5");
 }
 
+void unlink(H5File file, string groupName) {
+    file.unlink(groupName);
+}
+
 void Compresser::CompressFile(H5File file, int compressionLevel){
 
     if(compressionLevel == 0){
         stats(file);
-    }else if(compressionLevel == 1){
+    } else if(compressionLevel == 1){
         //gzipCompression(file);
         repack(file);
-    }   
+    } else if(compressionLevel == 2){
+        //gzipCompression(file);
+        compressEvents(file);
+    }
+}
 
+void Compresser::compressEvents(H5File file){
+    DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
+    newEventData * buffer = getEventBuffer(file, eventsDataset);
+    string datasetName = eventsDataset->getObjName();
+    DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
+    unlink(file, datasetName);
+    repack(file);
+    file.link(eventsDataset->getObjName(),eventsDataset->getObjName());
+    H5File newFile("../Files/cuco.fast5", H5F_ACC_RDWR);
+
+
+    CompType newEventDataType(sizeof(newEventData));
+    newEventDataType.insertMember("skip", HOFFSET(newEventData, skip), PredType::NATIVE_INT);
+    newEventDataType.insertMember("length", HOFFSET(newEventData,length), PredType::NATIVE_INT);
+
+    hsize_t chunk_dims[1] = {20};
+    DSetCreatPropList* eventsPlist = new DSetCreatPropList;
+    eventsPlist->setDeflate(9);
+    eventsPlist->setChunk(1, chunk_dims);
+
+
+    DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, newEventDataType, *eventsDataSpace, *eventsPlist));
+    newEventsDataset->write(buffer, newEventDataType);
 }
 
 

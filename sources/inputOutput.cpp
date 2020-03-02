@@ -21,7 +21,7 @@ static bool VerifyArguments(int argc, char *argv[]){
       return false;
     }
 
-    if (strncmp(compressionLevel, "1", 1) != 0 && strncmp(compressionLevel, "0", 1) != 0){
+    if (strncmp(compressionLevel, "1", 1) != 0 && strncmp(compressionLevel, "0", 1) != 0 && strncmp(compressionLevel, "2", 1) != 0){
      return false;
     }
 
