@@ -9,6 +9,21 @@ using namespace hdfalloc;
 using namespace h5repack;
 #define USERBLOCK_XFER_SIZE 512
 
+void init_packobject(pack_info_t *obj) {
+    int j, k;
+
+    strcpy(obj->path, "\0");
+    for (j = 0; j < H5_REPACK_MAX_NFILTERS; j++) {
+        obj->filter[j].filtn = -1;
+        for (k = 0; k < CD_VALUES; k++)
+            obj->filter[j].cd_values[k] = 0;
+    }
+    obj->chunk.rank = -1;
+    obj->refobj_id = -1;
+    obj->layout = H5D_LAYOUT_ERROR;
+    obj->nfilters = 0;
+}
+
 hid_t copy_named_datatype(hid_t type_in, hid_t fidout, named_dt_t **named_dt_head_p, trav_table_t *travt, pack_opt_t *options) {
 
     named_dt_t* dt = *named_dt_head_p; /* Stack pointer */
@@ -370,137 +385,113 @@ static int copy_user_block(const char *infile, const char *outfile, hsize_t size
     return status;
 }
 
-/*
-int apply_filters(const char* name,    *//* object name from traverse list *//*
-                  int rank,            *//* rank of dataset *//*
-                  hsize_t dims,
-size_t msize,        *//* size of type *//*
-        hid_t dcpl_id,       *//* dataset creation property list *//*
-pack_opt_t options,
-int has_filter)
 
+/*object name from traverse list ,rank of dataset, size of type,dataset creation property list*/
+int apply_filters(const char* name, int rank,hsize_t* dims, size_t msize, hid_t dcpl_id, pack_opt_t options,  int* has_filter){
 
-{
-int          nfilters;       *//* number of filters in DCPL *//*
-hsize_t      chsize[64];     *//* chunk size in elements *//*
-H5D_layout_t layout;
-int          i;
-pack_info_t  obj;
+    int          nfilters;       /* number of filters in DCPL */
+    hsize_t      chsize[64];     /* chunk size in elements */
+    H5D_layout_t layout;
+    int          i;
+    pack_info_t  obj;
 
-*has_filter = 0;
+    *has_filter = 0;
 
-if (rank==0) *//* scalar dataset, do not apply *//*
-return 0;
+    if (rank==0) /* scalar dataset, do not apply */
+    return 0;
 
-*//*-------------------------------------------------------------------------
- * initialize the assigment object
- *-------------------------------------------------------------------------
- *//*
-init_packobject(&obj);
+    /*-------------------------------------------------------------------------
+     * initialize the assigment object
+     *-------------------------------------------------------------------------
+     */
+    init_packobject(&obj);
 
-*//*-------------------------------------------------------------------------
- * find options
- *-------------------------------------------------------------------------
- *//*
-if (aux_assign_obj(name,options,&obj)==0)
-return 0;
+    /* get information about input filters */
+    if ((nfilters = H5Pget_nfilters(dcpl_id))<0)
+        return -1;
 
-*//* get information about input filters *//*
-if ((nfilters = H5Pget_nfilters(dcpl_id))<0)
-return -1;
-
-*//*-------------------------------------------------------------------------
- * check if we have filters in the pipeline
- * we want to replace them with the input filters
- * only remove if we are inserting new ones
- *-------------------------------------------------------------------------
- *//*
-if (nfilters && obj.nfilters )
-{
-*has_filter = 1;
-if (H5Premove_filter(dcpl_id,H5Z_FILTER_ALL)<0)
-return -1;
-}
-
-*//*-------------------------------------------------------------------------
- * check if there is an existent chunk
- * read it only if there is not a requested layout
- *-------------------------------------------------------------------------
- *//*
-if (obj.layout == -1 )
-{
-if ((layout = H5Pget_layout(dcpl_id))<0)
-return -1;
-
-if (layout == H5D_CHUNKED)
-{
-if ((rank = H5Pget_chunk(dcpl_id,NELMTS(chsize),chsize/out/))<0)
-return -1;
-obj.layout = H5D_CHUNKED;
-obj.chunk.rank = rank;
-for ( i = 0; i < rank; i++)
-obj.chunk.chunk_lengths[i] = chsize[i];
-}
-}
-
-if (obj.nfilters)
-{
-
-*//*-------------------------------------------------------------------------
- * filters require CHUNK layout; if we do not have one define a default
- *-------------------------------------------------------------------------
- *//*
-if (obj.layout==-1)
-{
-
-*//* stripmine info *//*
-hsize_t sm_size[H5S_MAX_RANK]; *//*stripmine size *//*
-hsize_t sm_nbytes;             *//*bytes per stripmine *//*
-
-obj.chunk.rank = rank;
-
-*//*
-* determine the strip mine size. The strip mine is
-* a hyperslab whose size is manageable.
-*//*
-
-
-
-sm_nbytes = msize;
-for ( i = rank; i > 0; --i)
-{
-hsize_t size = H5TOOLS_BUFSIZE / sm_nbytes;
-if ( size == 0) *//* datum size > H5TOOLS_BUFSIZE *//*
-size = 1;
-sm_size[i - 1] = MIN(dims[i - 1], size);
-sm_nbytes *= sm_size[i - 1];
-assert(sm_nbytes > 0);
-
-}
-
-for ( i = 0; i < rank; i++)
-{
-obj.chunk.chunk_lengths[i] = sm_size[i];
-}
-
-}
-
-for ( i=0; i<obj.nfilters; i++)
-{
-
-unsigned     aggression;     *//* the deflate level *//*
-
-aggression = obj.filter[i].cd_values[0];
-*//* set up for deflated data *//*
-if(H5Pset_chunk(dcpl_id, obj.chunk.rank, obj.chunk.chunk_lengths)<0)
-return -1;
-if(H5Pset_deflate(dcpl_id,aggression)<0)
-return -1;
+    /*-------------------------------------------------------------------------
+     * check if we have filters in the pipeline
+     * we want to replace them with the input filters
+     * only remove if we are inserting new ones
+     *-------------------------------------------------------------------------
+     */
+    if (nfilters && obj.nfilters )
+    {
+        *has_filter = 1;
+        if (H5Premove_filter(dcpl_id,H5Z_FILTER_ALL)<0)
+            return -1;
     }
 
+    /*-------------------------------------------------------------------------
+     * check if there is an existent chunk
+     * read it only if there is not a requested layout
+     *-------------------------------------------------------------------------
+     */
+    if (obj.layout == -1 ){
+        if ((layout = H5Pget_layout(dcpl_id))<0)
+            return -1;
+
+        if (layout == H5D_CHUNKED) {
+            if ((rank = H5Pget_chunk(dcpl_id,NELMTS(chsize),chsize/*salida*/))<0)
+                return -1;
+            obj.layout = H5D_CHUNKED;
+            obj.chunk.rank = rank;
+            for ( i = 0; i < rank; i++)
+                obj.chunk.chunk_lengths[i] = chsize[i];
+        }
+    }
+
+    if (obj.nfilters){
+    /*-------------------------------------------------------------------------
+     * filters require CHUNK layout; if we do not have one define a default
+     *-------------------------------------------------------------------------
+     */
+        if (obj.layout==-1)    {
+
+            /* stripmine info */
+            hsize_t sm_size[H5S_MAX_RANK]; /*stripmine size */
+            hsize_t sm_nbytes;             /*bytes per stripmine */
+
+            obj.chunk.rank = rank;
+
+            /*
+            * determine the strip mine size. The strip mine is
+            * a hyperslab whose size is manageable.
+            */
+
+
+
+            sm_nbytes = msize;
+            for ( i = rank; i > 0; --i){
+                hsize_t size = H5TOOLS_BUFSIZE / sm_nbytes;
+                if ( size == 0) /* datum size > H5TOOLS_BUFSIZE */
+                    size = 1;
+                sm_size[i - 1] = min(dims[i - 1], size);
+                sm_nbytes *= sm_size[i - 1];
+                assert(sm_nbytes > 0);
+            }
+
+            for ( i = 0; i < rank; i++){
+                obj.chunk.chunk_lengths[i] = sm_size[i];
+            }
+
+        }
+
+        for ( i=0; i<obj.nfilters; i++){
+
+            unsigned     aggression;     /* the deflate level */
+
+            aggression = obj.filter[i].cd_values[0];
+            /* set up for deflated data */
+            if(H5Pset_chunk(dcpl_id, obj.chunk.rank, obj.chunk.chunk_lengths)<0)
+            return -1;
+            if(H5Pset_deflate(dcpl_id,aggression)<0)
+                return -1;
+        }
     }
     return 0;
-}*/
+}
 
 static int do_copy_objects_error(hid_t grp_in, hid_t grp_out, hid_t dcpl_id, hid_t gcpl_in, hid_t gcpl_out,
                                  hid_t f_space_id, hid_t dset_in, hid_t dset_out, hid_t ftype_id, hid_t wtype_id,
@@ -801,17 +792,10 @@ int do_copy_objects(hid_t fidin,
                             }
 
                             /* apply the filter */
-                        /*if (apply_s)
-                        {
-                            if (apply_filters(travt->objs[i].name,
-                                rank,
-                                dims,
-                                msize,
-                                dcpl_out,
-                                options,
-                                &has_filter) < 0)
-                                goto error;
-                        }*/
+                            if (apply_s)
+                            {
+                                apply_filters(travt->objs[i].name,rank,dims,msize,dcpl_out,*options,&has_filter);
+                            }
 
                             /*-------------------------------------------------------------------------
                             * create the output dataset;
@@ -1188,21 +1172,6 @@ int copy_objects_error(hid_t fapl, hid_t fcpl, hid_t fidin, hid_t fidout, trav_t
     if(travt)
         trav_table_free(travt);
     return -1;
-}
-
-void init_packobject(pack_info_t *obj) {
-    int j, k;
-
-    strcpy(obj->path, "\0");
-    for (j = 0; j < H5_REPACK_MAX_NFILTERS; j++) {
-        obj->filter[j].filtn = -1;
-        for (k = 0; k < CD_VALUES; k++)
-            obj->filter[j].cd_values[k] = 0;
-    }
-    obj->chunk.rank = -1;
-    obj->refobj_id = -1;
-    obj->layout = H5D_LAYOUT_ERROR;
-    obj->nfilters = 0;
 }
 
 pack_opt_t * createDefaultOptions(){
