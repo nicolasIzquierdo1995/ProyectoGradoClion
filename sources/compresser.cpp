@@ -103,11 +103,12 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
 void Compresser::compressEvents(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
     newEventData * buffer = getEventBuffer(file, eventsDataset);
+
     string datasetName = eventsDataset->getObjName();
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
     unlink(file, datasetName);
     repack(file);
-    file.link(eventsDataset->getObjName(),eventsDataset->getObjName());
+
     H5File newFile("../Files/cuco.fast5", H5F_ACC_RDWR);
 
 

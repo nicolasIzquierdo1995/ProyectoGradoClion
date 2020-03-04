@@ -22,6 +22,7 @@ int main (int argc, char* argv[])
     ThreadPool* threadPool = new ThreadPool(2);
     if (!args->isFolder){
         comp->CompressFile(args->file, args->compressionLevel);
+        remove(args->fileName);
     }
     else {
         int fileCount = 1;//Utils::GetFilesCount(argv[1]);

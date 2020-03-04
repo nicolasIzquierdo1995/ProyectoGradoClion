@@ -2,10 +2,19 @@
 #include "../headers/inputOutput.hpp"
 #include <iostream>
 #include <string.h>
+#include <fstream>
 #include <sys/stat.h>
 using namespace std;
 using namespace inputOutput;
 using namespace H5;
+
+bool replace(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+}
 
 static bool VerifyArguments(int argc, char *argv[]){
     if (argc != 4){
@@ -53,8 +62,15 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     bool isDirectory = S_ISDIR(path_stat.st_mode);
 
     if (!isDirectory){
-        H5File file(argv[1], H5F_ACC_RDWR);
+        string fileName = argv[1];
+        replace(fileName, ".fast5", "_copy.fast5");
+        ifstream src(argv[1], ios::binary);
+        ofstream dst(fileName, ios::binary);
+        dst << src.rdbuf();
+
+        H5File file(fileName, H5F_ACC_RDWR);
         arg->file = file;
+        arg->fileName = fileName;
         arg->isFolder = false;
     }
     else {
