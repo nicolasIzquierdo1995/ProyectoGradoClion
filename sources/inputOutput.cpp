@@ -4,17 +4,11 @@
 #include <string.h>
 #include <fstream>
 #include <sys/stat.h>
+#include "../headers/utils.hpp"
 using namespace std;
 using namespace inputOutput;
 using namespace H5;
-
-bool replace(std::string& str, const std::string& from, const std::string& to) {
-    size_t start_pos = str.find(from);
-    if(start_pos == std::string::npos)
-        return false;
-    str.replace(start_pos, from.length(), to);
-    return true;
-}
+using namespace utils;
 
 static bool VerifyArguments(int argc, char *argv[]){
     if (argc != 4){
@@ -63,7 +57,7 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
 
     if (!isDirectory){
         string fileName = argv[1];
-        replace(fileName, ".fast5", "_copy.fast5");
+        Utils::replaceString(fileName, ".fast5", "_copy.fast5");
         ifstream src(argv[1], ios::binary);
         ofstream dst(fileName, ios::binary);
         dst << src.rdbuf();
