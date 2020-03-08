@@ -1,10 +1,10 @@
 #include "../headers/h5trav.hpp"
-#include "../headers/hdfalloc.hpp"
 #include "../headers/utils.hpp"
 #include <assert.h>
+#include <string.h>
+
 using namespace std;
 using namespace H5;
-using namespace hdfalloc;
 using namespace h5trav;
 /*-------------------------------------------------------------------------
  * local typedefs
@@ -47,13 +47,13 @@ static void trav_table_add(trav_table_t *table,
 
     if(table->nobjs == table->size) {
         table->size = MAX(1, table->size * 2);
-        table->objs = (trav_obj_t*)HDrealloc(table->objs, table->size * sizeof(trav_obj_t));
+        table->objs = (trav_obj_t*)realloc(table->objs, table->size * sizeof(trav_obj_t));
     } /* end if */
 
     newone = table->nobjs++;
     table->objs[newone].objno = oinfo ? oinfo->addr : HADDR_UNDEF;
     table->objs[newone].flags[0] = table->objs[newone].flags[1] = 0;
-    table->objs[newone].name = (char *)HDstrdup(path);
+    table->objs[newone].name = (char *) strdup(path);
     table->objs[newone].type = oinfo ? (h5trav_type_t)oinfo->type : H5TRAV_TYPE_LINK;
     table->objs[newone].nlinks = 0;
     table->objs[newone].sizelinks = 0;
@@ -75,12 +75,12 @@ static void trav_table_addlink(trav_table_t *table, haddr_t objno, const char *p
             /* allocate space if necessary */
             if(table->objs[i].nlinks == (unsigned)table->objs[i].sizelinks) {
                 table->objs[i].sizelinks = MAX(1, table->objs[i].sizelinks * 2);
-                table->objs[i].links = (trav_link_t*)HDrealloc(table->objs[i].links, table->objs[i].sizelinks * sizeof(trav_link_t));
+                table->objs[i].links = (trav_link_t*)realloc(table->objs[i].links, table->objs[i].sizelinks * sizeof(trav_link_t));
             } /* end if */
 
             /* insert it */
             n = table->objs[i].nlinks++;
-            table->objs[i].links[n].new_name = (char *)HDstrdup(path);
+            table->objs[i].links[n].new_name = (char *)strdup(path);
 
             return;
         } /* end for */
@@ -96,13 +96,13 @@ static void trav_addr_add(trav_addr_t *visited, haddr_t addr, const char *path)
     /* Allocate space if necessary */
     if(visited->nused == visited->nalloc) {
         visited->nalloc = MAX(1, visited->nalloc * 2);;
-        visited->objs = (trav_addr_t_obj*)HDrealloc(visited->objs, visited->nalloc * sizeof(visited->objs[0]));
+        visited->objs = (trav_addr_t_obj*)realloc(visited->objs, visited->nalloc * sizeof(visited->objs[0]));
     } /* end if */
 
     /* Append it */
     idx = visited->nused++;
     visited->objs[idx].addr = addr;
-    visited->objs[idx].path = HDstrdup(path);
+    visited->objs[idx].path = strdup(path);
 } /* end trav_addr_add() */
 
 static const char* trav_addr_visited(trav_addr_t *visited, haddr_t addr)
@@ -132,7 +132,7 @@ static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linf
         size_t base_len = strlen(udata->base_grp_name);
         size_t add_slash = base_len ? ((udata->base_grp_name)[base_len-1] != '/') : 1;
 
-        if(NULL == (new_name = (char*)HDmalloc(base_len + add_slash + strlen(path) + 1)))
+        if(NULL == (new_name = (char*)malloc(base_len + add_slash + strlen(path) + 1)))
             return(H5_ITER_ERROR);
         strcpy(new_name, udata->base_grp_name);
         if (add_slash)
@@ -150,7 +150,7 @@ static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linf
         /* Get information about the object */
         if(H5Oget_info_by_name(loc_id, path, &oinfo, H5P_DEFAULT) < 0) {
             if(new_name)
-                HDfree(new_name);
+                free(new_name);
             return(H5_ITER_ERROR);
         }
 
@@ -165,7 +165,7 @@ static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linf
         if(udata->visitor->visit_obj)
             if((*udata->visitor->visit_obj)(full_name, &oinfo, already_visited, udata->visitor->udata) < 0) {
                 if(new_name)
-                    HDfree(new_name);
+                    free(new_name);
                 return(H5_ITER_ERROR);
             }
     } /* end if */
@@ -174,13 +174,13 @@ static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linf
         if(udata->visitor->visit_lnk)
             if((*udata->visitor->visit_lnk)(full_name, linfo, udata->visitor->udata) < 0) {
                 if(new_name)
-                    HDfree(new_name);
+                    free(new_name);
                 return(H5_ITER_ERROR);
             }
     } /* end else */
 
     if(new_name)
-        HDfree(new_name);
+        free(new_name);
 
     return(H5_ITER_CONT);
 } /* end traverse_cb() */
@@ -235,8 +235,8 @@ static int traverse(hid_t file_id, const char *grp_name, hbool_t visit_start,
 
             /* Free paths to objects */
             for(u = 0; u < seen.nused; u++)
-                HDfree(seen.objs[u].path);
-            HDfree(seen.objs);
+                free(seen.objs[u].path);
+            free(seen.objs);
         } /* end if */
     } /* end if */
 
@@ -284,7 +284,7 @@ int h5trav::h5trav_gettable(hid_t fid, trav_table_t *table)
 
 void h5trav::trav_table_init(trav_table_t **tbl)
 {
-    trav_table_t* table = (trav_table_t*) HDmalloc(sizeof(trav_table_t));
+    trav_table_t* table = (trav_table_t*) malloc(sizeof(trav_table_t));
 
     table->size = 0;
     table->nobjs = 0;
@@ -299,17 +299,17 @@ void h5trav::trav_table_free( trav_table_t *table )
         unsigned int i;
 
         for(i = 0; i < table->nobjs; i++) {
-            HDfree(table->objs[i].name );
+            free(table->objs[i].name );
             if(table->objs[i].nlinks) {
                 unsigned int j;
 
                 for(j = 0; j < table->objs[i].nlinks; j++)
-                    HDfree(table->objs[i].links[j].new_name);
+                    free(table->objs[i].links[j].new_name);
 
-                HDfree(table->objs[i].links);
+                free(table->objs[i].links);
             } /* end if */
         } /* end for */
-        HDfree(table->objs);
+        free(table->objs);
     } /* end if */
-    HDfree(table);
+    free(table);
 }
