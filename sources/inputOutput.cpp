@@ -2,10 +2,13 @@
 #include "../headers/inputOutput.hpp"
 #include <iostream>
 #include <string.h>
+#include <fstream>
 #include <sys/stat.h>
+#include "../headers/utils.hpp"
 using namespace std;
 using namespace inputOutput;
 using namespace H5;
+using namespace utils;
 
 static bool VerifyArguments(int argc, char *argv[]){
     if (argc != 4){
@@ -21,7 +24,7 @@ static bool VerifyArguments(int argc, char *argv[]){
       return false;
     }
 
-    if (strncmp(compressionLevel, "1", 1) != 0 && strncmp(compressionLevel, "0", 1) != 0){
+    if (strncmp(compressionLevel, "1", 1) != 0 && strncmp(compressionLevel, "0", 1) != 0 && strncmp(compressionLevel, "2", 1) != 0){
      return false;
     }
 
@@ -53,8 +56,15 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     bool isDirectory = S_ISDIR(path_stat.st_mode);
 
     if (!isDirectory){
-        H5File file(argv[1], H5F_ACC_RDWR);
+        string fileName = argv[1];
+        Utils::replaceString(fileName, ".fast5", "_copy.fast5");
+        ifstream src(argv[1], ios::binary);
+        ofstream dst(fileName, ios::binary);
+        dst << src.rdbuf();
+
+        H5File file(fileName, H5F_ACC_RDWR);
         arg->file = file;
+        arg->fileName = fileName;
         arg->isFolder = false;
     }
     else {

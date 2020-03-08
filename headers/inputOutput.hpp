@@ -14,6 +14,7 @@ namespace inputOutput{
     bool isOk;
     bool isFolder;
     string errorMessage;
+    string fileName;
   } Arguments;
 
   class InputOutput {

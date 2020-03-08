@@ -72,3 +72,34 @@ const char* Utils::getUIntDtype(int num){
     return name;
 }
 
+CompType Utils::getEventDataType() {
+    CompType eventDataType(sizeof(eventData));
+    eventDataType.insertMember("start", HOFFSET(eventData,start), PredType::NATIVE_INT);
+    eventDataType.insertMember("length", HOFFSET(eventData,length), PredType::NATIVE_INT);
+    eventDataType.insertMember("mean", HOFFSET(eventData,mean), PredType::NATIVE_FLOAT);
+    eventDataType.insertMember("stdv", HOFFSET(eventData,stdv), PredType::NATIVE_FLOAT);
+    return eventDataType;
+}
+
+CompType Utils::getCompressedEventDataType() {
+    CompType compressedEventDataType(sizeof(compressedEventData));
+    compressedEventDataType.insertMember("skip", HOFFSET(compressedEventData, skip), PredType::NATIVE_INT);
+    compressedEventDataType.insertMember("length", HOFFSET(compressedEventData,length), PredType::NATIVE_INT);
+    return compressedEventDataType;
+}
+
+bool Utils::replaceString(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+}
+
+DSetCreatPropList* Utils::createCompressedSetCreatPropList() {
+    hsize_t chunk_dims[1] = {20};
+    DSetCreatPropList* creatPropList = new DSetCreatPropList;
+    creatPropList->setDeflate(9);
+    creatPropList->setChunk(1, chunk_dims);
+    return creatPropList;
+}
