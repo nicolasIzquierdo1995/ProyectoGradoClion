@@ -1,12 +1,14 @@
 #include "../headers/h5trav.hpp"
 #include "../headers/h5_repack_copy.hpp"
-#include "../headers/hdfalloc.hpp"
 #include <unistd.h>
+#include <string.h>
+#include <stdio.h>
+
 using namespace std;
 using namespace H5;
 using namespace h5trav;
-using namespace hdfalloc;
 using namespace h5repack;
+
 #define USERBLOCK_XFER_SIZE 512
 
 void init_packobject(pack_info_t *obj) {
