@@ -1,5 +1,5 @@
-#include "../headers/h5trav.hpp"
-#include "../headers/h5_repack_copy.hpp"
+#include "../libs/h5repack/h5trav.hpp"
+#include "../libs/h5repack/h5_repack_copy.hpp"
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
@@ -7,7 +7,7 @@
 using namespace std;
 using namespace H5;
 using namespace h5trav;
-using namespace h5repack;
+using namespace h5repack_copy;
 
 #define USERBLOCK_XFER_SIZE 512
 
@@ -1208,7 +1208,7 @@ pack_opt_t * createDefaultOptions(){
     return options;
 }
 
-int h5repack::copy_objects(H5File fileIn,
+int h5repack_copy::copy_objects(H5File fileIn,
                  const char* fnameout)
 {
     hid_t         fidin;

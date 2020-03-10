@@ -21,7 +21,12 @@ int main (int argc, char* argv[])
     Compresser* comp = new Compresser();
     ThreadPool* threadPool = new ThreadPool(2);
     if (!args->isFolder){
-        comp->CompressFile(args->file, args->compressionLevel);
+        if (args->compress){
+            comp->CompressFile(args->file, args->compressionLevel);
+        }
+        else {
+            comp->DeCompressFile(args->file, args->compressionLevel);
+        }
         remove(args->fileName);
     }
     else {

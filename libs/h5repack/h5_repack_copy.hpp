@@ -6,7 +6,7 @@
 
 #include "hdf5.h"
 #include "h5trav.hpp"
-#include "utils.hpp"
+#include "../../headers/utils.hpp"
 using namespace H5;
 
 
@@ -18,7 +18,7 @@ using namespace H5;
 #define NELMTS(X)    (sizeof(X)/sizeof(X[0]))
 const hsize_t H5TOOLS_BUFSIZE = 33554432;  /* 32 MB */
 
-namespace h5repack {
+namespace h5repack_copy {
 
     typedef struct {
         H5Z_filter_t filtn;                           /* filter identification number */

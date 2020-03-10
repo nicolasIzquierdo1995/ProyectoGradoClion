@@ -9,7 +9,6 @@ namespace compresser{
     public:
     Compresser();
     void CompressFile(H5File file, int compressionLevel);
-
-      void compressEvents(H5File file);
+    void DeCompressFile(H5File file, int compressionLevel);
   };
 }

@@ -1,10 +1,12 @@
-#include "../headers/h5_repack_copy.hpp"
+#include "../libs/h5repack/h5_repack_copy.hpp"
 #include "../headers/compresser.hpp"
+#include "../headers/repack.hpp"
 #include <iostream>
 using namespace std;
 using namespace compresser;
 using namespace H5;
 using namespace utils;
+//using namespace h5repack_copy;
 using namespace h5repack;
 
 Compresser::Compresser(){
@@ -53,33 +55,22 @@ compressedEventData *getEventBuffer(H5File file, DataSet *eventsDataset) {
     return newEventsBuffer;
 }
 
-void repack(H5File file) {
-    h5repack::copy_objects(file,"../Files/repackedFile.fast5");
+void repack(H5File file, int gzipCompression) {
+    //h5repack_copy::copy_objects(file,"../Files/repackedFile.fast5");
 }
 
 void unlink(H5File file, string groupName) {
     file.unlink(groupName);
 }
 
-void Compresser::CompressFile(H5File file, int compressionLevel){
-
-    if(compressionLevel == 0){
-        stats(file);
-    } else if(compressionLevel == 1){
-        repack(file);
-    } else if(compressionLevel == 2){
-        compressEvents(file);
-    }
-}
-
-void Compresser::compressEvents(H5File file){
+void compressEvents(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
     compressedEventData * buffer = getEventBuffer(file, eventsDataset);
 
     string datasetName = eventsDataset->getObjName();
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
     unlink(file, datasetName);
-    repack(file);
+    repack(file, 9);
 
     H5File newFile("../Files/repackedFile.fast5", H5F_ACC_RDWR);
 
@@ -88,6 +79,48 @@ void Compresser::compressEvents(H5File file){
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
     newEventsDataset->write(buffer, compressedEventDataType);
+}
+
+void deCompressEvents(H5File file){
+    DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
+    compressedEventData * buffer = getEventBuffer(file, eventsDataset);
+
+    string datasetName = eventsDataset->getObjName();
+    DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
+    unlink(file, datasetName);
+    repack(file, 9);
+
+    H5File newFile("../Files/repackedFile.fast5", H5F_ACC_RDWR);
+
+    CompType compressedEventDataType = Utils::getCompressedEventDataType();
+    DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
+
+    DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
+    newEventsDataset->write(buffer, compressedEventDataType);
+}
+
+void Compresser::CompressFile(H5File file, int compressionLevel){
+
+    if(compressionLevel == 0){
+        stats(file);
+    } else if(compressionLevel == 1){
+        const char *s[5] = {"h5repack", "-f", "GZIP=9", "../Files/file.fast5", "../Files/repackedFile.fast5"};
+        h5repack::noMain(6, s);
+    } else if(compressionLevel == 2){
+        compressEvents(file);
+    }
+}
+
+void Compresser::DeCompressFile(H5File file, int compressionLevel){
+
+    if(compressionLevel == 0){
+        stats(file);
+    } else if(compressionLevel == 1){
+        const char *s[5] = {"h5repack", "-f", "GZIP=9", "../Files/file.fast5", "../Files/repackedFile.fast5"};
+        h5repack::noMain(6, s);
+    } else if(compressionLevel == 2){
+        deCompressEvents(file);
+    }
 }
 
 

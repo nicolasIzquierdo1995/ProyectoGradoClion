@@ -11,7 +11,7 @@ using namespace H5;
 using namespace utils;
 
 static bool VerifyArguments(int argc, char *argv[]){
-    if (argc != 4){
+    if (argc != 5){
       return false;
     }
     
@@ -49,6 +49,7 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     arg->multiThreading = strncmp(argv[2],"false",4);
     arg->compressionLevel = atoi(argv[3]);
     arg->isOk = true;
+    arg->compress = strncmp(argv[4],"false",4);
 
 
     struct stat path_stat;
