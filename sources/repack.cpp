@@ -6190,6 +6190,3 @@ static void usage(const char *prog)
     printf("Cuco\n", prog);
 
 }
-
-
-

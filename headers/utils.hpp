@@ -17,6 +17,10 @@ namespace utils{
         int length;
     } compressedEventData;
 
+    typedef struct signalData {
+        int signal;
+    } signalData;
+
   class Utils {
     public:
         static DataSet* GetDataset(H5File file, string path, string dataSetGrandParentName, string dataSetName);
