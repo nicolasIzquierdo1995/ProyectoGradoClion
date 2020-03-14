@@ -6291,178 +6291,8 @@ int h5repack_cmp_pl(const char *fname1,
 
 }
 
-static
-void parse_command_line(int argc, const char **argv, pack_opt_t* options)
-{
 
-    int opt;
-
-    /* parse command line options */
-    while ((opt = get_option(argc, argv, s_opts, l_opts)) != EOF)
-    {
-        switch ((char)opt)
-        {
-
-            /* -i for backward compability */
-            case 'i':
-                infile = opt_arg;
-                has_i_o = 1;
-                break;
-                /* -o for backward compability */
-            case 'o':
-                outfile = opt_arg;
-                has_i_o = 1;
-                break;
-
-
-            case 'h':
-                exit(EXIT_SUCCESS);
-            case 'V':
-                exit(EXIT_SUCCESS);
-            case 'v':
-                options->verbose = 1;
-                break;
-            case 'f':
-
-                /* parse the -f filter option */
-                if (h5repack_addfilter( opt_arg, options)<0)
-                {
-                    error_msg("in parsing filter\n");
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            case 'l':
-
-                /* parse the -l layout option */
-                if (h5repack_addlayout( opt_arg, options)<0)
-                {
-                    error_msg("in parsing layout\n");
-                    exit(EXIT_FAILURE);
-                }
-                break;
-
-
-            case 'm':
-
-                options->min_comp = atoi( opt_arg );
-                if ((int)options->min_comp<=0)
-                {
-                    error_msg("invalid minimum compress size <%s>\n", opt_arg );
-                    exit(EXIT_FAILURE);
-                }
-                break;
-
-            case 'e':
-                read_info( opt_arg, options);
-                break;
-
-            case 'n':
-                options->use_native = 1;
-                break;
-
-            case 'L':
-                options->latest = 1;
-                break;
-
-            case 'c':
-
-                options->grp_compact = atoi( opt_arg );
-                if (options->grp_compact>0)
-                    options->latest = 1; /* must use latest format */
-                break;
-
-
-            case 'd':
-
-                options->grp_indexed = atoi( opt_arg );
-                if (options->grp_indexed>0)
-                    options->latest = 1; /* must use latest format */
-                break;
-
-            case 's':
-
-            {
-
-                int idx = 0;
-                int ssize = 0;
-                char *msgPtr = (char*)strchr( opt_arg, ':');
-                options->latest = 1; /* must use latest format */
-                if (msgPtr == NULL)
-                {
-                    ssize = atoi( opt_arg );
-                    for (idx=0; idx<5; idx++)
-                        options->msg_size[idx] = ssize;
-                }
-                else
-                {
-                    char msgType[10];
-                    strcpy(msgType, msgPtr+1);
-                    msgPtr[0] = '\0';
-                    ssize = atoi( opt_arg );
-                    if (strncmp(msgType, "dspace",6) == 0) {
-                        options->msg_size[0] = ssize;
-                    }
-                    else if (strncmp(msgType, "dtype", 5) == 0) {
-                        options->msg_size[1] = ssize;
-                    }
-                    else if (strncmp(msgType, "fill", 4) == 0) {
-                        options->msg_size[2] = ssize;
-                    }
-                    else if (strncmp(msgType, "pline", 5) == 0) {
-                        options->msg_size[3] = ssize;
-                    }
-                    else if (strncmp(msgType, "attr", 4) == 0) {
-                        options->msg_size[4] = ssize;
-                    }
-                }
-            }
-
-                break;
-
-
-            case 'u':
-
-                options->ublock_filename = opt_arg;
-                break;
-
-            case 'b':
-
-                options->ublock_size = (hsize_t)atol( opt_arg );
-                break;
-
-            case 't':
-
-                options->threshold = (hsize_t)atol( opt_arg );
-                break;
-
-            case 'a':
-
-                options->alignment = atol( opt_arg );
-                if ( options->alignment < 1 )
-                {
-                    error_msg("invalid alignment size\n", opt_arg );
-                    exit(EXIT_FAILURE);
-                }
-                break;
-
-        } /* switch */
-
-
-    } /* while */
-
-    if ( has_i_o == 0 )
-    {
-        /* check for file names to be processed */
-        if (argc <= opt_ind || argv[ opt_ind + 1 ] == NULL)
-        {
-            error_msg("missing file names\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-}
-
-int h5repack_init (pack_opt_t *options,
+void h5repack_init (pack_opt_t *options,
                    int verbose)
 {
     int k, n;
@@ -6478,7 +6308,7 @@ int h5repack_init (pack_opt_t *options,
             options->filter_g[n].cd_values[k] = 0;
     }
 
-    return (options_table_init(&(options->op_tbl)));
+    options_table_init(&(options->op_tbl));
 }
 
 int h5repack::noMain(int argc, const char **argv)
@@ -6490,7 +6320,14 @@ int h5repack::noMain(int argc, const char **argv)
     /* initialize options  */
     h5repack_init(&options,0);
 
-    parse_command_line(argc, argv, &options);
+    get_option(argc, argv, s_opts, l_opts);
+
+    /* parse the -f filter option */
+    if (h5repack_addfilter( "GZIP=9", &options)<0)
+    {
+        error_msg("in parsing filter\n");
+        exit(EXIT_FAILURE);
+    }
 
     /* get file names if they were not yet got */
     if ( has_i_o == 0 )
