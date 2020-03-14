@@ -18,6 +18,9 @@
 #define MAX(a,b)		(((a)>(b)) ? (a) : (b))
 
 #include "hdf5.h"
+#include <string>
+
+using namespace std;
 
 typedef struct {
     char obj[MAX_NC_NAME];
@@ -252,5 +255,5 @@ typedef struct named_dt_t {
 
 
 namespace h5repack {
-    int noMain(int argc, const char **argv);
+    int noMain(string inputFile, string outputFile, string gzipCompression);
 }

@@ -6168,59 +6168,21 @@ void h5repack_init (pack_opt_t *options,
     options_table_init(&(options->op_tbl));
 }
 
-int h5repack::noMain(int argc, const char **argv)
+int h5repack::noMain(string inputFile, string outputFile, string gzipCompression)
 {
-
-    pack_opt_t    options;            /*the global options */
-    int           ret=-1;
-
-    /* initialize options  */
+    pack_opt_t    options;
     h5repack_init(&options,0);
 
     opt_ind = opt_ind + 2;
 
-    /* parse the -f filter option */
-    if (h5repack_addfilter( "GZIP=9", &options)<0)
-    {
-        error_msg("in parsing filter\n");
-        exit(EXIT_FAILURE);
-    }
+    string compression = "GZIP=";
+    compression = compression.append(gzipCompression);
 
-    /* get file names if they were not yet got */
-    if ( has_i_o == 0 )
-    {
+    h5repack_addfilter( compression.c_str(), &options);
+    cucorepack(inputFile.c_str(),outputFile.c_str(),&options);
 
-        if ( argv[ opt_ind ] != NULL && argv[ opt_ind + 1 ] != NULL )
-        {
-            infile = argv[ opt_ind ];
-            outfile = argv[ opt_ind + 1 ];
-
-            if ( strcmp( infile, outfile ) == 0 )
-            {
-                error_msg("file names cannot be the same\n");
-                exit(EXIT_FAILURE);
-
-            }
-        }
-
-        else
-        {
-            error_msg("file names missing\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-
-    /* pack it */
-    ret=cucorepack(infile,outfile,&options);
-
-    /* free tables */
     h5repack_end(&options);
-
-    if (ret==-1)
-        return 1;
-    else
-        return 0;
+    return 0;
 }
 
 static void usage(const char *prog)

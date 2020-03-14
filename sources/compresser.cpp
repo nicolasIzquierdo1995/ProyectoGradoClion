@@ -101,11 +101,13 @@ void deCompressEvents(H5File file){
 
 void Compresser::CompressFile(H5File file, int compressionLevel){
 
+    string fileName = file.getFileName();
+    string compressedFileName = fileName;
+    Utils::replaceString(compressedFileName, ".fast5", "_compressed.fast5");
     if(compressionLevel == 0){
         stats(file);
     } else if(compressionLevel == 1){
-        const char *s[5] = {"h5repack", "-f", "GZIP=9", "../Files/file.fast5", "../Files/repackedFile.fast5"};
-        h5repack::noMain(6, s);
+        h5repack::noMain(fileName, compressedFileName, "9");
     } else if(compressionLevel == 2){
         compressEvents(file);
     }
@@ -113,11 +115,13 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
 
 void Compresser::DeCompressFile(H5File file, int compressionLevel){
 
+    string fileName = file.getFileName();
+    string deCompressedFileName = fileName;
+    Utils::replaceString(deCompressedFileName, ".fast5", "_deCompressed.fast5");
     if(compressionLevel == 0){
         stats(file);
     } else if(compressionLevel == 1){
-        const char *s[5] = {"h5repack", "-f", "GZIP=9", "../Files/file.fast5", "../Files/repackedFile.fast5"};
-        h5repack::noMain(6, s);
+        h5repack::noMain(fileName, deCompressedFileName, "3");
     } else if(compressionLevel == 2){
         deCompressEvents(file);
     }
