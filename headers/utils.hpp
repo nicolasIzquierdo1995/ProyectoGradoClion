@@ -32,5 +32,6 @@ namespace utils{
         static CompType getCompressedEventDataType();
         static bool replaceString(string& str, const string& from, const string& to);
         static DSetCreatPropList* createCompressedSetCreatPropList();
+        static PredType getIntType(int* buffer, int count);
   };
 }

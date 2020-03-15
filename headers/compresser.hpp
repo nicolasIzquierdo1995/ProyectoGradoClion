@@ -4,7 +4,15 @@
 
 using namespace H5;
 using namespace std;
+
+
 namespace compresser{
+
+    typedef struct BufferAndType {
+        int * buffer;
+        PredType type;
+    } BufferAndType;
+
   class Compresser {
     public:
     Compresser();

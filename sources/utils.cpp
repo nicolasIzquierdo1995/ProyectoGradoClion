@@ -103,3 +103,39 @@ DSetCreatPropList* Utils::createCompressedSetCreatPropList() {
     creatPropList->setChunk(1, chunk_dims);
     return creatPropList;
 }
+
+PredType Utils::getIntType(int* buffer, int count){
+    int max = 0;
+    int min = 0;
+    for (int i = 0; i < count; i++){
+        if (buffer[i] > max){
+            max = buffer[i];
+        }
+        if (buffer[i] < min){
+            min = buffer[i];
+        }
+    }
+
+    if (min >= 0){
+        if (max < 256){
+            return PredType::STD_U8LE;
+        }
+        else if (max < 65536){
+            return PredType::STD_U16LE;
+        }
+        else if (max >= 65536){
+            return PredType::STD_U32LE;
+        }
+    }
+    else{
+        if (max < 128 -1 && abs(min) < 128){
+            return PredType::STD_I8LE;
+        }
+        else if (max < 32767 - 1 && abs(min) < 32767){
+            return PredType::STD_I16LE;
+        }
+        else if (max >= 32767 - 1 && abs(min) >= 32767){
+            return PredType::STD_I32LE;
+        }
+    }
+}
