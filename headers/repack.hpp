@@ -256,5 +256,5 @@ typedef struct named_dt_t {
 
 
 namespace h5repack {
-    int noMain(H5File inputFile, string outputFile, string gzipCompression);
+    int repack(H5File inputFile, string outputFile, string gzipCompression);
 }
