@@ -113,7 +113,7 @@ void compressEvents(H5File file){
     Utils::replaceString(newFileName, "_copy.fast5", "_repacked.fast5");
 
     unlink(file, datasetName);
-    h5repack::noMain(file, newFileName, "9");
+    h5repack::repack(file, newFileName, "9");
 
     H5File newFile(newFileName, H5F_ACC_RDWR);
 
@@ -153,7 +153,7 @@ void compressReads(H5File file){
     Utils::replaceString(newFileName, "_copy.fast5", "_repacked.fast5");
 
     unlink(file, datasetName);
-    h5repack::noMain(file, newFileName, "9");
+    h5repack::repack(file, newFileName, "9");
     H5File newFile(newFileName, H5F_ACC_RDWR);
 
     DSetCreatPropList* pList = Utils::createCompressedSetCreatPropList();
@@ -171,7 +171,7 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
     if(compressionLevel == 0){
         stats(file);
     } else if(compressionLevel == 1){
-        h5repack::noMain(file, compressedFileName, "9");
+        h5repack::repack(file, compressedFileName, "9");
     } else if(compressionLevel == 2){
         compressEvents(file);
     } else if(compressionLevel == 3){
@@ -189,7 +189,7 @@ void Compresser::DeCompressFile(H5File file, int compressionLevel){
     if(compressionLevel == 0){
         stats(file);
     } else if(compressionLevel == 1){
-        h5repack::noMain(file, deCompressedFileName, "3");
+        h5repack::repack(file, deCompressedFileName, "3");
     } else if(compressionLevel == 2){
         deCompressEvents(file);
     }

@@ -1,4 +1,4 @@
-// Header file:
+// Header file:NATIVE_INT
 #include <string>
 #include "H5Cpp.h"
 
