@@ -3,7 +3,6 @@
 #include "../headers/repack.hpp"
 #include <map>
 #include <string>
-#include <iterator>
 #include <algorithm>
 #include <iostream>
 
@@ -52,33 +51,41 @@ void stats(H5File file){
     }
 }
 
-compressedEventData *getEventBuffer(H5File file, DataSet *eventsDataset) {
+EventsAndType getEventBuffer(H5File file, DataSet *eventsDataset) {
 
     CompType eventDataType = Utils::getEventDataType();
-    CompType compressedEventDataType = Utils::getCompressedEventDataType();
+    CompType compressedEventDataType = Utils::getCompressedEventDataType(PredType::NATIVE_INT,PredType::NATIVE_INT);
 
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
     hsize_t eventsDims[eventsDataSpace->getSimpleExtentNdims()];
     eventsDataSpace->getSimpleExtentDims(eventsDims);
     unsigned long eventsCount = (unsigned long)(eventsDims[0]);
     eventData* eventsBuffer = new eventData[eventsCount];
+    int* skipAuxBuffer = new int [eventsCount];
+    int* lengthAuxBuffer = new int [eventsCount];
 
     compressedEventData* newEventsBuffer = new compressedEventData[eventsCount];
     eventsDataset->read(eventsBuffer,eventDataType,*eventsDataSpace,*eventsDataSpace);
+
 
     globalAttributes.insert(pair<string,int>("firstEvent",eventsBuffer[0].start));
     for(int i = 0; i< eventsCount - 1; i++){
         newEventsBuffer[i].skip = eventsBuffer[i+1].start - (eventsBuffer[i].start + eventsBuffer[i].length);
         newEventsBuffer[i].length = eventsBuffer[i].length;
+
+        skipAuxBuffer[i] = newEventsBuffer[i].skip;
+        lengthAuxBuffer[i] = newEventsBuffer[i].length;
     }
 
     newEventsBuffer[eventsCount].skip = 0;
     newEventsBuffer[eventsCount].length = eventsBuffer[eventsCount].length;
 
-    return newEventsBuffer;
+    EventsAndType ret {newEventsBuffer,Utils::getIntType(skipAuxBuffer,eventsCount),Utils::getIntType(lengthAuxBuffer,eventsCount)};
+
+    return ret;
 }
 
-BufferAndType getSignalBuffer(H5File file, DataSet *signalDataset) {
+ReadsAndType getSignalBuffer(H5File file, DataSet *signalDataset) {
 
 
     DataSpace* signalDataSpace = new DataSpace(signalDataset->getSpace());
@@ -95,7 +102,7 @@ BufferAndType getSignalBuffer(H5File file, DataSet *signalDataset) {
         newSignalsBuffer[i] = signalsBuffer[i] - signalsBuffer[i - 1];
     }
 
-    BufferAndType ret {newSignalsBuffer, Utils::getIntType(newSignalsBuffer,signalsCount)};
+    ReadsAndType ret {newSignalsBuffer, Utils::getIntType(newSignalsBuffer,signalsCount)};
     return ret;
 }
 
@@ -105,7 +112,7 @@ void unlink(H5File file, string groupName) {
 
 void compressEvents(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
-    compressedEventData * buffer = getEventBuffer(file, eventsDataset);
+    EventsAndType eat = getEventBuffer(file, eventsDataset);
     string datasetName = eventsDataset->getObjName();
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
 
@@ -117,16 +124,16 @@ void compressEvents(H5File file){
 
     H5File newFile(newFileName, H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType();
+    CompType compressedEventDataType = Utils::getCompressedEventDataType(eat.skipType,eat.lengthType);
     DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
-    newEventsDataset->write(buffer, compressedEventDataType);
+    newEventsDataset->write(eat.buffer, compressedEventDataType);
 }
 
 void deCompressEvents(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
-    compressedEventData * buffer = getEventBuffer(file, eventsDataset);
+    compressedEventData * buffer = getEventBuffer(file, eventsDataset).buffer;
 
     string datasetName = eventsDataset->getObjName();
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
@@ -135,7 +142,7 @@ void deCompressEvents(H5File file){
 
     H5File newFile("../Files/repackedFile.fast5", H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType();
+    CompType compressedEventDataType = Utils::getCompressedEventDataType(PredType::NATIVE_INT,PredType::NATIVE_INT);
     DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
@@ -144,7 +151,7 @@ void deCompressEvents(H5File file){
 
 void compressReads(H5File file){
     DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
-    BufferAndType byt = getSignalBuffer(file, signalsDataset);
+    ReadsAndType rat = getSignalBuffer(file, signalsDataset);
 
     string datasetName = signalsDataset->getObjName();
     DataSpace* signalsDataSpace = new DataSpace(signalsDataset->getSpace());
@@ -158,8 +165,8 @@ void compressReads(H5File file){
 
     DSetCreatPropList* pList = Utils::createCompressedSetCreatPropList();
 
-    DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(datasetName, PredType::STD_I16LE, *signalsDataSpace, *pList));
-    newSignalsDataset->write(byt.buffer, byt.type);
+    DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(datasetName, rat.type, *signalsDataSpace, *pList));
+    newSignalsDataset->write(rat.buffer, rat.type);
 }
 
 void Compresser::CompressFile(H5File file, int compressionLevel){

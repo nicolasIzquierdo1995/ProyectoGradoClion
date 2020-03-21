@@ -81,10 +81,10 @@ CompType Utils::getEventDataType() {
     return eventDataType;
 }
 
-CompType Utils::getCompressedEventDataType() {
+CompType Utils::getCompressedEventDataType(PredType skipType,PredType lengthType) {
     CompType compressedEventDataType(sizeof(compressedEventData));
-    compressedEventDataType.insertMember("skip", HOFFSET(compressedEventData, skip), PredType::NATIVE_INT);
-    compressedEventDataType.insertMember("length", HOFFSET(compressedEventData,length), PredType::NATIVE_INT);
+    compressedEventDataType.insertMember("skip", HOFFSET(compressedEventData, skip), skipType);
+    compressedEventDataType.insertMember("length", HOFFSET(compressedEventData,length), lengthType);
     return compressedEventDataType;
 }
 
