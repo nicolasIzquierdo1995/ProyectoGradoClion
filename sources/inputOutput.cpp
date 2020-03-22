@@ -11,22 +11,21 @@ using namespace H5;
 using namespace utils;
 
 static bool VerifyArguments(int argc, char *argv[]){
-    if (argc != 5){
+    if (argc < 2 || argc > 3){
       return false;
     }
-    
-    const char* multiThreading = argv[2];
-    const char* compressionLevel = argv[3];
-
-    cout << multiThreading << endl;
-    cout << compressionLevel << endl;
-    if (strncmp(multiThreading, "true", 4) != 0 && strncmp(multiThreading, "false", 4) != 0 ) {
-      return false;
+    if(argc == 3){
+        const char* compressionLevel = argv[2];
+        int compInt = std::stoi(compressionLevel,0,10);
+        if (compInt < 0 || compInt>3){
+            return false;
+        }
     }
 
-    if (strncmp(compressionLevel, "1", 1) != 0 && strncmp(compressionLevel, "0", 1) != 0 && strncmp(compressionLevel, "2", 1) != 0&& strncmp(compressionLevel, "3", 1) != 0){
-     return false;
-    }
+    //const char* multiThreading = argv[2];
+    // if (strncmp(multiThreading, "true", 4) != 0 && strncmp(multiThreading, "false", 4) != 0 ) {
+    //      return false;
+    //    }
 
     return true;
 }
@@ -45,12 +44,11 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     if (!VerifyArguments(argc,argv)){
         return CreateErrorArgument();
     }
-    Arguments * arg = new Arguments();
-    arg->multiThreading = strncmp(argv[2],"false",4);
-    arg->compressionLevel = atoi(argv[3]);
-    arg->isOk = true;
-    arg->compress = strncmp(argv[4],"false",4);
 
+    Arguments * arg = new Arguments();
+    arg->isOk = true;
+    arg->compress = argc == 3;
+    //arg->multiThreading = strncmp(argv[2],"false",4);
 
     struct stat path_stat;
     stat(argv[1], &path_stat);
@@ -71,5 +69,22 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     else {
         arg->isFolder = true;
     }
+
+
+    if (arg->compress)
+        arg->compressionLevel = atoi(argv[2]);
+    else {
+        Group root = arg->file.openGroup("/");
+        if(root.attrExists("compLevel")) {
+            int compLvl;
+            Attribute at = root.openAttribute("compLevel");
+            DataType dt = at.getDataType();
+            at.read(dt,&compLvl);
+            arg->compressionLevel = compLvl;
+        }else
+            return  CreateErrorArgument();
+
+    }
+
     return arg;
 }

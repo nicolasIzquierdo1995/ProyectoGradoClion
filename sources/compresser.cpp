@@ -173,7 +173,8 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
 
     string compressedFileName = file.getFileName();
     Utils::replaceString(compressedFileName, "_copy.fast5", "_repacked.fast5");
-    globalAttributes.insert(pair<string,int>("compLevel",compressionLevel));
+    if(compressionLevel > 0)
+        globalAttributes.insert(pair<string,int>("compLevel",compressionLevel));
 
     if(compressionLevel == 0){
         stats(file);
@@ -192,10 +193,8 @@ void Compresser::DeCompressFile(H5File file, int compressionLevel){
 
     string fileName = file.getFileName();
     string deCompressedFileName = fileName;
-    Utils::replaceString(deCompressedFileName, ".fast5", "_deCompressed.fast5");
-    if(compressionLevel == 0){
-        stats(file);
-    } else if(compressionLevel == 1){
+    Utils::replaceString(deCompressedFileName, "_copy.fast5", "_deCompressed.fast5");
+    if(compressionLevel == 1){
         h5repack::repack(file, deCompressedFileName, "3");
     } else if(compressionLevel == 2){
         deCompressEvents(file);
