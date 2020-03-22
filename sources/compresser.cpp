@@ -54,7 +54,6 @@ void stats(H5File file){
 EventsAndType getEventBuffer(H5File file, DataSet *eventsDataset) {
 
     CompType eventDataType = Utils::getEventDataType();
-    CompType compressedEventDataType = Utils::getCompressedEventDataType(PredType::NATIVE_INT,PredType::NATIVE_INT);
 
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
     hsize_t eventsDims[eventsDataSpace->getSimpleExtentNdims()];
@@ -86,7 +85,6 @@ EventsAndType getEventBuffer(H5File file, DataSet *eventsDataset) {
 }
 
 ReadsAndType getSignalBuffer(H5File file, DataSet *signalDataset) {
-
 
     DataSpace* signalDataSpace = new DataSpace(signalDataset->getSpace());
     hsize_t signalDims[signalDataSpace->getSimpleExtentNdims()];
