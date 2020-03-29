@@ -7,29 +7,28 @@ using namespace std;
 namespace utils{
 
     typedef struct eventData {
-        int start;
-        int length;
+        long start;
+        long length;
         float mean;
         float stdv;
     } eventData;
 
     typedef struct compressedEventData {
-        int skip;
-        int length;
+        long skip;
+        long length;
     } compressedEventData;
 
-    typedef struct signalData {
-        int signal;
-    } signalData;
-
     typedef struct EventsAndType {
-        compressedEventData * buffer;
+        long* skipBuffer;
+        long* lengthBuffer;
+        size_t totalSize;
+        size_t offset;
         PredType skipType;
         PredType lengthType;
     } EventsAndType;
 
     typedef struct ReadsAndType {
-        int * buffer;
+        void * buffer;
         PredType type;
     } ReadsAndType;
 
@@ -40,11 +39,12 @@ namespace utils{
         static int GetFilesCount(string path);
         static string* GetFileArray(string path, int fileCount);
         static bool IsInt(DataSet ds);
-        static const char* getUIntDtype(int num);
         static CompType getEventDataType();
-        static CompType getCompressedEventDataType(PredType skipType,PredType legthType);
+        static CompType getCompressedEventDataType(size_t size,size_t skipOffset,PredType skipType,PredType legthType);
         static bool replaceString(string& str, const string& from, const string& to);
         static DSetCreatPropList* createCompressedSetCreatPropList();
-        static PredType getIntType(int* buffer, int count);
-  };
+        static PredType getIntType(long* buffer, int count);
+
+        static size_t getSize(PredType type);
+    };
 }

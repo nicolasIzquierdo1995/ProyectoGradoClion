@@ -56,22 +56,6 @@ bool Utils::IsInt(DataSet ds){
     return type_class == H5T_INTEGER;
 }
 
-const char* Utils::getUIntDtype(int num){
-    const char* name;
-    if (num < 2^8){
-        name = "char";
-    }
-    else if (num < 2^16){
-        name = "ushortint";
-    }
-    else if (num < 2^32){
-        name = "uint";
-    }else{
-        name = "ulongint";
-    }
-    return name;
-}
-
 CompType Utils::getEventDataType() {
     CompType eventDataType(sizeof(eventData));
     eventDataType.insertMember("start", HOFFSET(eventData,start), PredType::NATIVE_INT);
@@ -81,10 +65,10 @@ CompType Utils::getEventDataType() {
     return eventDataType;
 }
 
-CompType Utils::getCompressedEventDataType(PredType skipType,PredType lengthType) {
-    CompType compressedEventDataType(sizeof(compressedEventData));
-    compressedEventDataType.insertMember("skip", HOFFSET(compressedEventData, skip), skipType);
-    compressedEventDataType.insertMember("length", HOFFSET(compressedEventData,length), lengthType);
+CompType Utils::getCompressedEventDataType(size_t totalSize,size_t skipOffset,PredType skipType,PredType lengthType) {
+    CompType compressedEventDataType(totalSize);
+    compressedEventDataType.insertMember("skip", 0, skipType);
+    compressedEventDataType.insertMember("length", skipOffset, lengthType);
     return compressedEventDataType;
 }
 
@@ -104,7 +88,7 @@ DSetCreatPropList* Utils::createCompressedSetCreatPropList() {
     return creatPropList;
 }
 
-PredType Utils::getIntType(int* buffer, int count){
+PredType Utils::getIntType(long* buffer, int count){
     int max = 0;
     int min = 0;
     for (int i = 0; i < count; i++){
@@ -137,5 +121,15 @@ PredType Utils::getIntType(int* buffer, int count){
         else if (max >= 32767 - 1 && abs(min) >= 32767){
             return PredType::STD_I32LE;
         }
+    }
+}
+
+size_t Utils::getSize(PredType type) {
+    if(type == PredType::STD_U8LE || type == PredType::STD_I8LE){
+        return 8;
+    }else if(type == PredType::STD_U16LE || type == PredType::STD_I16LE){
+        return 16;
+    }else if(type == PredType::STD_U32LE || type == PredType::STD_I32LE){
+        return 32;
     }
 }

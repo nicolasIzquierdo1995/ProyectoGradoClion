@@ -53,33 +53,34 @@ void stats(H5File file){
 
 EventsAndType getEventBuffer(H5File file, DataSet *eventsDataset) {
 
-    CompType eventDataType = Utils::getEventDataType();
+    CompType originalEventDT = Utils::getEventDataType();
 
-    DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
-    hsize_t eventsDims[eventsDataSpace->getSimpleExtentNdims()];
-    eventsDataSpace->getSimpleExtentDims(eventsDims);
-    unsigned long eventsCount = (unsigned long)(eventsDims[0]);
-    eventData* eventsBuffer = new eventData[eventsCount];
-    int* skipAuxBuffer = new int [eventsCount];
-    int* lengthAuxBuffer = new int [eventsCount];
+    DataSpace* originalEventDS = new DataSpace(eventsDataset->getSpace());
+    hsize_t originalEventsD[originalEventDS->getSimpleExtentNdims()];
+    originalEventDS->getSimpleExtentDims(originalEventsD);
+    unsigned long eventsCount = (unsigned long)(originalEventsD[0]);
+    eventData* originalEventsBuffer = new eventData[eventsCount];
 
-    compressedEventData* newEventsBuffer = new compressedEventData[eventsCount];
-    eventsDataset->read(eventsBuffer,eventDataType,*eventsDataSpace,*eventsDataSpace);
+    long* skipAuxBuffer = new long [eventsCount];
+    long* lengthAuxBuffer = new long [eventsCount];
 
+    eventsDataset->read(originalEventsBuffer,originalEventDT,*originalEventDS,*originalEventDS);
+    globalAttributes.insert(pair<string,int>("firstEvent",originalEventsBuffer[0].start));
 
-    globalAttributes.insert(pair<string,int>("firstEvent",eventsBuffer[0].start));
     for(int i = 0; i< eventsCount - 1; i++){
-        newEventsBuffer[i].skip = eventsBuffer[i+1].start - (eventsBuffer[i].start + eventsBuffer[i].length);
-        newEventsBuffer[i].length = eventsBuffer[i].length;
-
-        skipAuxBuffer[i] = newEventsBuffer[i].skip;
-        lengthAuxBuffer[i] = newEventsBuffer[i].length;
+        skipAuxBuffer[i] = originalEventsBuffer[i + 1].start - (originalEventsBuffer[i].start + originalEventsBuffer[i].length);
+        lengthAuxBuffer[i] = originalEventsBuffer[i].length;
     }
 
-    newEventsBuffer[eventsCount].skip = 0;
-    newEventsBuffer[eventsCount].length = eventsBuffer[eventsCount].length;
+    skipAuxBuffer[eventsCount] = 0;
+    lengthAuxBuffer[eventsCount] = originalEventsBuffer[eventsCount].length;
 
-    EventsAndType ret {newEventsBuffer,Utils::getIntType(skipAuxBuffer,eventsCount),Utils::getIntType(lengthAuxBuffer,eventsCount)};
+    PredType skipType = Utils::getIntType(skipAuxBuffer, eventsCount);
+    PredType lengthType = Utils::getIntType(lengthAuxBuffer, eventsCount);
+    size_t skipSize = Utils::getSize(skipType);
+    size_t lengthSize = Utils::getSize(lengthType);
+
+    EventsAndType ret {skipAuxBuffer, lengthAuxBuffer,skipSize+lengthSize,skipSize,skipType,lengthType};
 
     return ret;
 }
@@ -92,7 +93,7 @@ ReadsAndType getSignalBuffer(H5File file, DataSet *signalDataset) {
     int signalsCount = (int)(signalDims[0]);
     int* signalsBuffer = new int[signalsCount];
 
-    int* newSignalsBuffer = new int[signalsCount - 1];
+    long* newSignalsBuffer = new long[signalsCount - 1];
     signalDataset->read(signalsBuffer,PredType::NATIVE_INT,*signalDataSpace,*signalDataSpace);
 
     globalAttributes.insert(pair<string,int>("firstRead",signalsBuffer[0]));
