@@ -65,10 +65,10 @@ CompType Utils::getEventDataType() {
     return eventDataType;
 }
 
-CompType Utils::getCompressedEventDataType(size_t totalSize,size_t skipOffset,PredType skipType,PredType lengthType) {
+CompType Utils::getCompressedEventDataType(size_t totalSize,size_t skipSize,size_t lengthSize,PredType skipType,PredType lengthType) {
     CompType compressedEventDataType(totalSize);
-    compressedEventDataType.insertMember("skip", 0, skipType);
-    compressedEventDataType.insertMember("length", skipOffset, lengthType);
+    compressedEventDataType.insertMember("skip", sizeof(long) - skipSize, skipType);
+    compressedEventDataType.insertMember("length", (2 * sizeof(long)) -lengthSize, lengthType);
     return compressedEventDataType;
 }
 
@@ -126,10 +126,10 @@ PredType Utils::getIntType(long* buffer, int count){
 
 size_t Utils::getSize(PredType type) {
     if(type == PredType::STD_U8LE || type == PredType::STD_I8LE){
-        return 8;
+        return sizeof(int8_t);
     }else if(type == PredType::STD_U16LE || type == PredType::STD_I16LE){
-        return 16;
+        return sizeof(int16_t);
     }else if(type == PredType::STD_U32LE || type == PredType::STD_I32LE){
-        return 32;
+        return sizeof(int32_t);
     }
 }

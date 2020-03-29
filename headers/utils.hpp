@@ -20,14 +20,14 @@ namespace utils{
 
     typedef struct EventsAndType {
         compressedEventData* eventBuffer;
-        size_t totalSize;
-        size_t offset;
+        size_t skipSize;
+        size_t lengthSize;
         PredType skipType;
         PredType lengthType;
     } EventsAndType;
 
     typedef struct ReadsAndType {
-        void * buffer;
+        long * buffer;
         PredType type;
     } ReadsAndType;
 
@@ -39,7 +39,7 @@ namespace utils{
         static string* GetFileArray(string path, int fileCount);
         static bool IsInt(DataSet ds);
         static CompType getEventDataType();
-        static CompType getCompressedEventDataType(size_t size,size_t skipOffset,PredType skipType,PredType legthType);
+        static CompType getCompressedEventDataType(size_t totalSize,size_t skipSize,size_t lengthSize,PredType skipType,PredType legthType);
         static bool replaceString(string& str, const string& from, const string& to);
         static DSetCreatPropList* createCompressedSetCreatPropList();
         static PredType getIntType(long* buffer, int count);

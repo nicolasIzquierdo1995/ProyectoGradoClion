@@ -89,7 +89,7 @@ EventsAndType getEventBuffer(H5File file, DataSet *eventsDataset) {
     size_t skipSize = Utils::getSize(skipType);
     size_t lengthSize = Utils::getSize(lengthType);
 
-    EventsAndType ret {eventBuffer,skipSize + lengthSize,skipSize,skipType,lengthType};
+    EventsAndType ret {eventBuffer,skipSize,lengthSize,skipType,lengthType};
 
     return ret;
 }
@@ -132,7 +132,7 @@ void compressEvents(H5File file){
 
     H5File newFile(newFileName, H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType(eat.totalSize,eat.offset,eat.skipType,eat.lengthType);
+    CompType compressedEventDataType = Utils::getCompressedEventDataType(eat.skipSize + eat.lengthSize,eat.skipSize,eat.lengthSize,eat.skipType,eat.lengthType);
     DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
@@ -141,7 +141,7 @@ void compressEvents(H5File file){
 
 void deCompressEvents(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
-    compressedEventData * buffer = getEventBuffer(file, eventsDataset).buffer;
+    compressedEventData * buffer = getEventBuffer(file, eventsDataset).eventBuffer;
 
     string datasetName = eventsDataset->getObjName();
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
@@ -150,7 +150,7 @@ void deCompressEvents(H5File file){
 
     H5File newFile("../Files/repackedFile.fast5", H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType(PredType::NATIVE_INT,PredType::NATIVE_INT);
+    CompType compressedEventDataType = Utils::getCompressedEventDataType(sizeof(long),sizeof(int),sizeof(int),PredType::NATIVE_INT,PredType::NATIVE_INT);
     DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
