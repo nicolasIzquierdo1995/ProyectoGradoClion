@@ -65,10 +65,10 @@ CompType Utils::getEventDataType() {
     return eventDataType;
 }
 
-CompType Utils::getCompressedEventDataType(size_t totalSize,size_t skipSize,PredType skipType,PredType lengthType) {
-    CompType compressedEventDataType(totalSize);
-    compressedEventDataType.insertMember("skip", 0, skipType);
-    compressedEventDataType.insertMember("length", skipSize , lengthType);
+CompType Utils::getCompressedEventDataType(PredType skipType,PredType lengthType) {
+    CompType compressedEventDataType(sizeof(compressedEventData));
+    compressedEventDataType.insertMember("skip", HOFFSET(compressedEventData,skip), skipType);
+    compressedEventDataType.insertMember("length", HOFFSET(compressedEventData,length) , lengthType);
     return compressedEventDataType;
 }
 
@@ -124,12 +124,3 @@ PredType Utils::getIntType(long* buffer, int count){
     }
 }
 
-size_t Utils::getSize(PredType type) {
-    if(type == PredType::STD_U8LE || type == PredType::STD_I8LE){
-        return 8;
-    }else if(type == PredType::STD_U16LE || type == PredType::STD_I16LE){
-        return 16;
-    }else if(type == PredType::STD_U32LE || type == PredType::STD_I32LE){
-        return 32;
-    }
-}
