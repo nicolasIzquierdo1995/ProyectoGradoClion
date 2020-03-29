@@ -132,7 +132,7 @@ void compressEvents(H5File file){
 
     H5File newFile(newFileName, H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType(eat.skipSize + eat.lengthSize,eat.skipSize,eat.lengthSize,eat.skipType,eat.lengthType);
+    CompType compressedEventDataType = Utils::getCompressedEventDataType(eat.skipSize + eat.lengthSize,eat.skipSize,eat.skipType,eat.lengthType);
     DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
@@ -150,7 +150,7 @@ void deCompressEvents(H5File file){
 
     H5File newFile("../Files/repackedFile.fast5", H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType(sizeof(long),sizeof(int),sizeof(int),PredType::NATIVE_INT,PredType::NATIVE_INT);
+    CompType compressedEventDataType = Utils::getCompressedEventDataType(sizeof(long),sizeof(int),PredType::NATIVE_INT,PredType::NATIVE_INT);
     DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));

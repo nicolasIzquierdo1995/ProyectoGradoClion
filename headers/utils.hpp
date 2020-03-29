@@ -39,7 +39,7 @@ namespace utils{
         static string* GetFileArray(string path, int fileCount);
         static bool IsInt(DataSet ds);
         static CompType getEventDataType();
-        static CompType getCompressedEventDataType(size_t totalSize,size_t skipSize,size_t lengthSize,PredType skipType,PredType legthType);
+        static CompType getCompressedEventDataType(size_t totalSize,size_t skipSize,PredType skipType,PredType legthType);
         static bool replaceString(string& str, const string& from, const string& to);
         static DSetCreatPropList* createCompressedSetCreatPropList();
         static PredType getIntType(long* buffer, int count);
