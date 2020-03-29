@@ -141,7 +141,7 @@ void compressEvents(H5File file){
 
 void deCompressEvents(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
-    compressedEventData * buffer = getEventBuffer(file, eventsDataset).buffer;
+    compressedEventData * buffer = getEventBuffer(file, eventsDataset).eventBuffer;
 
     string datasetName = eventsDataset->getObjName();
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
@@ -150,7 +150,7 @@ void deCompressEvents(H5File file){
 
     H5File newFile("../Files/repackedFile.fast5", H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType(PredType::NATIVE_INT,PredType::NATIVE_INT);
+    CompType compressedEventDataType ;//= Utils::getCompressedEventDataType(PredType::NATIVE_INT,PredType::NATIVE_INT);
     DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
@@ -181,8 +181,9 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
 
     string compressedFileName = file.getFileName();
     Utils::replaceString(compressedFileName, "_copy.fast5", "_repacked.fast5");
-    if(compressionLevel > 0)
+    if(compressionLevel > 0){
         globalAttributes.insert(pair<string,int>("compLevel",compressionLevel));
+    }
 
     if(compressionLevel == 0){
         stats(file);
