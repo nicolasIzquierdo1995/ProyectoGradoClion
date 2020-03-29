@@ -19,7 +19,7 @@ namespace utils{
     } compressedEventData;
 
     typedef struct ReadsAndType {
-        long * buffer;
+        int8_t * buffer;
         PredType type;
     } ReadsAndType;
 
