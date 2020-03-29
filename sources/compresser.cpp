@@ -51,7 +51,7 @@ void stats(H5File file){
     }
 }
 
-EventsAndType getEventBuffer(H5File file, DataSet *eventsDataset) {
+compressedEventData* getEventBuffer(H5File file, DataSet *eventsDataset) {
 
     CompType originalEventDT = Utils::getEventDataType();
 
@@ -61,35 +61,20 @@ EventsAndType getEventBuffer(H5File file, DataSet *eventsDataset) {
     unsigned long eventsCount = (unsigned long)(originalEventsD[0]);
     eventData* originalEventsBuffer = new eventData[eventsCount];
 
-    long* skipAuxBuffer = new long [eventsCount];
-    long* lengthAuxBuffer = new long [eventsCount];
     compressedEventData* eventBuffer = new compressedEventData [eventsCount];;
 
     eventsDataset->read(originalEventsBuffer,originalEventDT,*originalEventDS,*originalEventDS);
     globalAttributes.insert(pair<string,int>("firstEvent",originalEventsBuffer[0].start));
 
-
-
     for(int i = 0; i< eventsCount - 1; i++){
-        skipAuxBuffer[i] = originalEventsBuffer[i + 1].start - (originalEventsBuffer[i].start + originalEventsBuffer[i].length);
-        lengthAuxBuffer[i] = originalEventsBuffer[i].length;
-
-        eventBuffer[i].skip = skipAuxBuffer[i];
-        eventBuffer[i].length = lengthAuxBuffer[i];
+        eventBuffer[i].skip  = originalEventsBuffer[i + 1].start - (originalEventsBuffer[i].start + originalEventsBuffer[i].length);
+        eventBuffer[i].length = originalEventsBuffer[i].length;
     }
 
-    skipAuxBuffer[eventsCount] = 0;
-    lengthAuxBuffer[eventsCount] = originalEventsBuffer[eventsCount].length;
+    eventBuffer[eventsCount].skip = 0;
+    eventBuffer[eventsCount].length = originalEventsBuffer[eventsCount].length;
 
-    eventBuffer[eventsCount].length = skipAuxBuffer[eventsCount];
-    eventBuffer[eventsCount].skip = skipAuxBuffer[eventsCount];
-
-    PredType skipType = Utils::getIntType(skipAuxBuffer, eventsCount);
-    PredType lengthType = Utils::getIntType(lengthAuxBuffer, eventsCount);
-
-    EventsAndType ret {eventBuffer,skipType,lengthType};
-
-    return ret;
+    return eventBuffer;
 }
 
 ReadsAndType getSignalBuffer(H5File file, DataSet *signalDataset) {
@@ -118,7 +103,7 @@ void unlink(H5File file, string groupName) {
 
 void compressEvents(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
-    EventsAndType eat = getEventBuffer(file, eventsDataset);
+    compressedEventData* buffer = getEventBuffer(file, eventsDataset);
     string datasetName = eventsDataset->getObjName();
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
 
@@ -130,16 +115,16 @@ void compressEvents(H5File file){
 
     H5File newFile(newFileName, H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType(eat.skipType,eat.lengthType);
+    CompType compressedEventDataType = Utils::getCompressedEventDataType();
     DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
-    newEventsDataset->write(eat.eventBuffer, compressedEventDataType);
+    newEventsDataset->write(buffer, compressedEventDataType);
 }
 
 void deCompressEvents(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
-    compressedEventData * buffer = getEventBuffer(file, eventsDataset).eventBuffer;
+    compressedEventData * buffer = getEventBuffer(file, eventsDataset);
 
     string datasetName = eventsDataset->getObjName();
     DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
@@ -148,7 +133,7 @@ void deCompressEvents(H5File file){
 
     H5File newFile("../Files/repackedFile.fast5", H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType(PredType::NATIVE_INT,PredType::NATIVE_INT);
+    CompType compressedEventDataType = Utils::getCompressedEventDataType();
     DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
