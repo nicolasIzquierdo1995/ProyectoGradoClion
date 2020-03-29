@@ -63,24 +63,33 @@ EventsAndType getEventBuffer(H5File file, DataSet *eventsDataset) {
 
     long* skipAuxBuffer = new long [eventsCount];
     long* lengthAuxBuffer = new long [eventsCount];
+    compressedEventData* eventBuffer = new compressedEventData [eventsCount];;
 
     eventsDataset->read(originalEventsBuffer,originalEventDT,*originalEventDS,*originalEventDS);
     globalAttributes.insert(pair<string,int>("firstEvent",originalEventsBuffer[0].start));
 
+
+
     for(int i = 0; i< eventsCount - 1; i++){
         skipAuxBuffer[i] = originalEventsBuffer[i + 1].start - (originalEventsBuffer[i].start + originalEventsBuffer[i].length);
         lengthAuxBuffer[i] = originalEventsBuffer[i].length;
+
+        eventBuffer[i].skip = skipAuxBuffer[i];
+        eventBuffer[i].length = lengthAuxBuffer[i];
     }
 
     skipAuxBuffer[eventsCount] = 0;
     lengthAuxBuffer[eventsCount] = originalEventsBuffer[eventsCount].length;
+
+    eventBuffer[eventsCount].length = skipAuxBuffer[eventsCount];
+    eventBuffer[eventsCount].skip = skipAuxBuffer[eventsCount];
 
     PredType skipType = Utils::getIntType(skipAuxBuffer, eventsCount);
     PredType lengthType = Utils::getIntType(lengthAuxBuffer, eventsCount);
     size_t skipSize = Utils::getSize(skipType);
     size_t lengthSize = Utils::getSize(lengthType);
 
-    EventsAndType ret {skipAuxBuffer, lengthAuxBuffer,skipSize+lengthSize,skipSize,skipType,lengthType};
+    EventsAndType ret {eventBuffer,skipSize + lengthSize,skipSize,skipType,lengthType};
 
     return ret;
 }
@@ -123,11 +132,11 @@ void compressEvents(H5File file){
 
     H5File newFile(newFileName, H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType(eat.skipType,eat.lengthType);
+    CompType compressedEventDataType = Utils::getCompressedEventDataType(eat.totalSize,eat.offset,eat.skipType,eat.lengthType);
     DSetCreatPropList* eventsPlist = Utils::createCompressedSetCreatPropList();
 
     DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
-    newEventsDataset->write(eat.buffer, compressedEventDataType);
+    newEventsDataset->write(eat.eventBuffer, compressedEventDataType);
 }
 
 void deCompressEvents(H5File file){

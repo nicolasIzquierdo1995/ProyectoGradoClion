@@ -19,8 +19,7 @@ namespace utils{
     } compressedEventData;
 
     typedef struct EventsAndType {
-        long* skipBuffer;
-        long* lengthBuffer;
+        compressedEventData* eventBuffer;
         size_t totalSize;
         size_t offset;
         PredType skipType;
