@@ -136,11 +136,11 @@ StdvAndMean Utils::getStdvAndMean(int* buffer, int start, int length)
         sum += buffer[i];
     }
 
-    mean = sum/10;
+    mean = sum/length;
 
     for(i = start; i < start + length; ++i)
         standardDeviation += pow(buffer[i] - mean, 2);
 
-    return {sqrt(standardDeviation / 10), mean };
+    return {sqrt(standardDeviation / length), mean };
 }
 

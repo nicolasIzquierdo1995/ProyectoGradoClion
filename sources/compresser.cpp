@@ -93,7 +93,7 @@ eventData* getDecompressedEventsBuffer(H5File file, DataSet *compressedEventsDat
     int signalsCount = (int)(signalDims[0]);
     int* signalsBuffer = new int[signalsCount];
 
-    signalDataset->read(signalsBuffer,PredType::NATIVE_UINT16,*signalDataSpace,*signalDataSpace);
+    signalDataset->read(signalsBuffer,PredType::NATIVE_INT,*signalDataSpace,*signalDataSpace);
 
     eventData* decompressedEventsBuffer = new eventData[eventsCount];
     compressedEventData* compressedEventBuffer = new compressedEventData [eventsCount];;
