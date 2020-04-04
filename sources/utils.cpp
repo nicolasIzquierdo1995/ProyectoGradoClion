@@ -2,6 +2,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/lambda/bind.hpp>
 #include <iostream>
+#include <cmath>
 using namespace std;
 using namespace H5;
 using namespace boost::filesystem;
@@ -122,5 +123,24 @@ PredType Utils::getIntType(long* buffer, int count){
             return PredType::STD_I32LE;
         }
     }
+}
+
+StdvAndMean Utils::getStdvAndMean(int* buffer, int start, int length)
+{
+    float sum = 0.0, mean, standardDeviation = 0.0;
+
+    int i;
+
+    for(i = start; i < start + length; ++i)
+    {
+        sum += buffer[i];
+    }
+
+    mean = sum/10;
+
+    for(i = start; i < start + length; ++i)
+        standardDeviation += pow(buffer[i] - mean, 2);
+
+    return {sqrt(standardDeviation / 10), mean };
 }
 

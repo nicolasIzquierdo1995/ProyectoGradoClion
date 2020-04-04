@@ -23,6 +23,10 @@ namespace utils{
         PredType type;
     } ReadsAndType;
 
+    typedef struct StdvAndMean {
+        float stdv;
+        float mean;
+    } StdvAndMean;
 
     class Utils {
     public:
@@ -35,6 +39,7 @@ namespace utils{
         static bool replaceString(string& str, const string& from, const string& to);
         static DSetCreatPropList* createCompressedSetCreatPropList();
         static PredType getIntType(long* buffer, int count);
+        static StdvAndMean getStdvAndMean(int* buffer, int start, int length);
 
     };
 }
