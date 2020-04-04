@@ -73,6 +73,10 @@ CompType Utils::getCompressedEventDataType() {
     return compressedEventDataType;
 }
 
+PredType Utils::getCompressedSignalDataType(){
+    return PredType::NATIVE_INT16;
+}
+
 bool Utils::replaceString(std::string& str, const std::string& from, const std::string& to) {
     size_t start_pos = str.find(from);
     if(start_pos == std::string::npos)
@@ -89,7 +93,7 @@ DSetCreatPropList* Utils::createCompressedSetCreatPropList() {
     return creatPropList;
 }
 
-PredType Utils::getIntType(long* buffer, int count){
+PredType Utils::getIntType(int* buffer, int count){
     int max = 0;
     int min = 0;
     for (int i = 0; i < count; i++){
