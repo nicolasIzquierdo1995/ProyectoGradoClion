@@ -19,18 +19,20 @@ Compresser::Compresser(){
 }
 
 void saveAtributes(string fileName){
-    map<string,int>::iterator it = globalAttributes.begin();
-    H5File file(fileName, H5F_ACC_RDWR);
-    Group root = file.openGroup("/");
-    hsize_t dims[1] = { 1 };
-    while(it != globalAttributes.end()){
-        DataSpace ds = DataSpace(1, dims);
-        string attName = it->first;
-        int attValue = it->second;
-        int value[1] = { attValue };
-        Attribute at = root.createAttribute( attName, PredType::NATIVE_INT,ds);
-        at.write( PredType::NATIVE_INT, value);
-        it++;
+    if(!globalAttributes.empty()){
+        map<string,int>::iterator it = globalAttributes.begin();
+        H5File file(fileName, H5F_ACC_RDWR);
+        Group root = file.openGroup("/");
+        hsize_t dims[1] = { 1 };
+        while(it != globalAttributes.end()){
+            DataSpace ds = DataSpace(1, dims);
+            string attName = it->first;
+            int attValue = it->second;
+            int value[1] = { attValue };
+            Attribute at = root.createAttribute( attName, PredType::NATIVE_INT,ds);
+            at.write( PredType::NATIVE_INT, value);
+            it++;
+        }
     }
 }
 
@@ -49,6 +51,7 @@ void stats(H5File file){
     for(int j = 0; j<(unsigned long)(eventsDims[0]);j++){
         cout<<skips[j]<<",";
     }
+        cout<<endl;
 }
 
 compressedEventData* getCompressedEventsBuffer(H5File file, DataSet *eventsDataset) {

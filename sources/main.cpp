@@ -3,7 +3,6 @@
 #include "../headers/threadPool.hpp"
 #include "../headers/utils.hpp"
 #include <boost/filesystem.hpp>
-#include <boost/lambda/bind.hpp>
 #include <iostream>
 #include <future>
 using namespace std;
