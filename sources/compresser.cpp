@@ -122,7 +122,17 @@ eventData* getDecompressedEventsBuffer(H5File file, DataSet *compressedEventsDat
     return decompressedEventsBuffer;
 }
 
-int16_t* getSignalBuffer(H5File file, DataSet *signalDataset) {
+int16_t getMin(uint16_t* buffer, int size){
+    int16_t min = buffer[0];
+    for(int i = 1; i< size; i++){
+        if(buffer[i]<min){
+            min = buffer[i];
+        }
+    }
+    return min;
+}
+
+uint16_t* getSignalBuffer(H5File file, DataSet *signalDataset) {
 
     DataSpace* signalDataSpace = new DataSpace(signalDataset->getSpace());
     hsize_t signalDims[signalDataSpace->getSimpleExtentNdims()];
@@ -130,16 +140,18 @@ int16_t* getSignalBuffer(H5File file, DataSet *signalDataset) {
     int signalsCount = (int)(signalDims[0]);
     uint16_t* signalsBuffer = new uint16_t[signalsCount];
 
-    int16_t* newSignalsBuffer = new int16_t[signalsCount - 1];
+    uint16_t* newSignalsBuffer = new uint16_t[signalsCount - 1];
     signalDataset->read(signalsBuffer,PredType::NATIVE_UINT16,*signalDataSpace,*signalDataSpace);
+    uint16_t min = getMin(signalsBuffer,signalsCount);
 
     globalAttributes.insert(pair<string,int>("firstRead",signalsBuffer[0]));
     for(int i = 1; i< signalsCount; i++){
-        newSignalsBuffer[i] = signalsBuffer[i] - signalsBuffer[i - 1];
+        newSignalsBuffer[i] = signalsBuffer[i] - min;
     }
 
     return newSignalsBuffer;
 }
+
 
 void unlink(H5File file, string groupName) {
     file.unlink(groupName);
@@ -149,7 +161,8 @@ void compressEventsAndReads(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
     DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
 
-    int16_t* compressedSignalBuffer = getSignalBuffer(file, signalsDataset);
+    uint16_t* compressedSignalBuffer = getSignalBuffer(file, signalsDataset);
+
     compressedEventData* compressedEventsBuffer = getCompressedEventsBuffer(file, eventsDataset);
 
     string eventsDatasetName = eventsDataset->getObjName();
@@ -176,6 +189,7 @@ void compressEventsAndReads(H5File file){
     newEventsDataset->write(compressedEventsBuffer, compressedEventDataType);
     DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(readsDatasetName, compressedSignalDataType, *signalsDataSpace, *readsPList));
     newSignalsDataset->write(compressedSignalBuffer, compressedSignalDataType);
+
 }
 
 void deCompressEvents(H5File file){
@@ -219,7 +233,7 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
         compressEventsAndReads(file);
     }
 
-    saveAtributes(compressedFileName);
+    //saveAtributes(compressedFileName);
 }
 
 void Compresser::DeCompressFile(H5File file, int compressionLevel){
