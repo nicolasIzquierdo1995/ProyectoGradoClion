@@ -52,7 +52,8 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
 
     struct stat path_stat;
     stat(argv[1], &path_stat);
-    bool isDirectory = S_ISDIR(path_stat.st_mode);
+    //bool isDirectory = S_ISDIR(path_stat.st_mode);
+    bool isDirectory = false;
 
     if (!isDirectory){
         string fileName = argv[1];
