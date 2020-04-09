@@ -55,19 +55,14 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     //bool isDirectory = S_ISDIR(path_stat.st_mode);
     bool isDirectory = false;
 
-    if (!isDirectory){
-        string fileName = argv[1];
-        Utils::replaceString(fileName, ".fast5", "_copy.fast5");
-        Utils::copyFile(argv[1], fileName);
+    string fileName = argv[1];
+    Utils::replaceString(fileName, ".fast5", "_copy.fast5");
+    Utils::copyFile(argv[1], fileName);
 
-        H5File file(fileName, H5F_ACC_RDWR);
-        arg->file = file;
-        arg->fileName = fileName;
-        arg->isFolder = false;
-    }
-    else {
-        arg->isFolder = true;
-    }
+    H5File file(fileName, H5F_ACC_RDWR);
+    arg->file = file;
+    arg->fileName = fileName;
+    arg->isFolder = false;
 
 
     if (arg->compress)
