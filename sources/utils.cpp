@@ -1,4 +1,5 @@
 #include "../headers/utils.hpp"
+#include <sys/stat.h>
 #include <boost/filesystem.hpp>
 #include <boost/lambda/bind.hpp>
 #include <iostream>
@@ -148,3 +149,24 @@ StdvAndMean Utils::getStdvAndMean(int* buffer, int start, int length)
     return {sqrt(standardDeviation / length), mean };
 }
 
+void Utils::copyFile(string originalName, string copyName){
+
+        FILE *src1;
+        FILE *final;
+
+        src1 = fopen(originalName.c_str(),"rb");
+        final = fopen(copyName.c_str(),"wb");
+
+        int c;
+        while((c=fgetc(src1))!=EOF)
+        {
+            fputc(c,final);
+        }
+
+        fclose(src1);
+        fclose(final);
+
+        struct stat st;
+        stat(originalName.c_str(), &st);
+        chmod(copyName.c_str(), st.st_mode);
+}

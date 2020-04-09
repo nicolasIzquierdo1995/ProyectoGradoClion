@@ -36,5 +36,6 @@ namespace utils{
         static PredType getIntType(int* buffer, int count);
         static StdvAndMean getStdvAndMean(int* buffer, int start, int length);
         static PredType getCompressedSignalDataType();
+        static void copyFile(string originalName, string copyName);
     };
 }

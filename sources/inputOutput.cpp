@@ -58,9 +58,7 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     if (!isDirectory){
         string fileName = argv[1];
         Utils::replaceString(fileName, ".fast5", "_copy.fast5");
-        ifstream src(argv[1], ios::binary);
-        ofstream dst(fileName, ios::binary);
-        dst << src.rdbuf();
+        Utils::copyFile(argv[1], fileName);
 
         H5File file(fileName, H5F_ACC_RDWR);
         arg->file = file;
