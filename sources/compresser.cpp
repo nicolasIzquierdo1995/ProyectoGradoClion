@@ -131,15 +131,15 @@ int16_t* getSignalBuffer(H5File file, DataSet *signalDataset) {
     hsize_t signalDims[signalDataSpace->getSimpleExtentNdims()];
     signalDataSpace->getSimpleExtentDims(signalDims);
     int signalsCount = (int)(signalDims[0]);
-    int16_t* signalsBuffer = new int16_t[signalsCount];
+    uint16_t* signalsBuffer = new uint16_t[signalsCount];
 
-    int16_t* newSignalsBuffer = signalsBuffer;
+    int16_t* newSignalsBuffer = new int16_t[signalsCount];
     signalDataset->read(signalsBuffer,PredType::NATIVE_INT16,*signalDataSpace,*signalDataSpace);
 
     globalAttributes.insert(pair<string,int>("firstRead",signalsBuffer[0]));
-    //for(int i = 1; i< signalsCount-1; i++){
-      //  newSignalsBuffer[i] = signalsBuffer[i] - signalsBuffer[i - 1];
-    //}
+    for(int i = 1; i< signalsCount-1; i++){
+        newSignalsBuffer[i] = signalsBuffer[i] - signalsBuffer[i - 1];
+    }
 
     return newSignalsBuffer;
 }
@@ -175,8 +175,8 @@ void compressEventsAndReads(H5File file){
     DSetCreatPropList* eventsPlist =  Utils::createCompressedSetCreatPropList(eventsDataset);
     DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(signalsDataset);
 
-    //DataSet * newEventsDataset = new DataSet(newFile.createDataSet(eventsDatasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
-    //newEventsDataset->write(compressedEventsBuffer, compressedEventDataType);
+    DataSet * newEventsDataset = new DataSet(newFile.createDataSet(eventsDatasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
+    newEventsDataset->write(compressedEventsBuffer, compressedEventDataType);
     DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(readsDatasetName, PredType::NATIVE_UINT16, *signalsDataSpace, *readsPList));
     newSignalsDataset->write(compressedSignalBuffer, PredType::NATIVE_UINT16, *signalsDataSpace, *signalsDataSpace);
 }

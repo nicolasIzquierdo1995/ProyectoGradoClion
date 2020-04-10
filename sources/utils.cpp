@@ -87,7 +87,7 @@ bool Utils::replaceString(std::string& str, const std::string& from, const std::
 }
 
 DSetCreatPropList* Utils::createCompressedSetCreatPropList(DataSet* dSet) {
-    hsize_t chunk_dims[2];
+    hsize_t chunk_dims[1];
     dSet->getCreatePlist().getChunk(1, chunk_dims);
     DSetCreatPropList* creatPropList = new DSetCreatPropList;
     creatPropList->setDeflate(9);
