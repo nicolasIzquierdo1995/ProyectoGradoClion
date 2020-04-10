@@ -75,7 +75,7 @@ CompType Utils::getCompressedEventDataType() {
 }
 
 PredType Utils::getCompressedSignalDataType(){
-    return PredType::NATIVE_INT16;
+    return PredType::NATIVE_UINT16;
 }
 
 bool Utils::replaceString(std::string& str, const std::string& from, const std::string& to) {
@@ -86,8 +86,9 @@ bool Utils::replaceString(std::string& str, const std::string& from, const std::
     return true;
 }
 
-DSetCreatPropList* Utils::createCompressedSetCreatPropList() {
-    hsize_t chunk_dims[1] = {20};
+DSetCreatPropList* Utils::createCompressedSetCreatPropList(DataSet* dSet) {
+    hsize_t chunk_dims[2];
+    dSet->getCreatePlist().getChunk(1, chunk_dims);
     DSetCreatPropList* creatPropList = new DSetCreatPropList;
     creatPropList->setDeflate(9);
     creatPropList->setChunk(1, chunk_dims);

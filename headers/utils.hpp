@@ -32,7 +32,7 @@ namespace utils{
         static CompType getEventDataType();
         static CompType getCompressedEventDataType();
         static bool replaceString(string& str, const string& from, const string& to);
-        static DSetCreatPropList* createCompressedSetCreatPropList();
+        static DSetCreatPropList* createCompressedSetCreatPropList(DataSet* dSet);
         static PredType getIntType(int* buffer, int count);
         static StdvAndMean getStdvAndMean(int* buffer, int start, int length);
         static PredType getCompressedSignalDataType();
