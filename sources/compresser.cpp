@@ -77,7 +77,7 @@ compressedEventData* getCompressedEventsBuffer(H5File file, DataSet *eventsDatas
     }
 
     eventBuffer[eventsCount-1].skip = 0;
-    eventBuffer[eventsCount-1].length = originalEventsBuffer[eventsCount].length;
+    eventBuffer[eventsCount-1].length = originalEventsBuffer[eventsCount-1].length;
 
     return eventBuffer;
 }
