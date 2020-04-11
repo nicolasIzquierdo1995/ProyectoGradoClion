@@ -78,6 +78,10 @@ PredType Utils::getCompressedSignalDataType(){
     return PredType::NATIVE_UINT16;
 }
 
+PredType Utils::getDecompressedSignalDataType(){
+    return PredType::NATIVE_UINT16;
+}
+
 bool Utils::replaceString(std::string& str, const std::string& from, const std::string& to) {
     size_t start_pos = str.find(from);
     if(start_pos == std::string::npos)
@@ -91,6 +95,15 @@ DSetCreatPropList* Utils::createCompressedSetCreatPropList(DataSet* dSet) {
     dSet->getCreatePlist().getChunk(1, chunk_dims);
     DSetCreatPropList* creatPropList = new DSetCreatPropList;
     creatPropList->setDeflate(9);
+    creatPropList->setChunk(1, chunk_dims);
+    return creatPropList;
+}
+
+DSetCreatPropList *Utils::createDecompressedSetCreatPropList(DataSet* dSet) {
+    hsize_t chunk_dims[1];
+    dSet->getCreatePlist().getChunk(1, chunk_dims);
+    DSetCreatPropList* creatPropList = new DSetCreatPropList;
+    creatPropList->setDeflate(3);
     creatPropList->setChunk(1, chunk_dims);
     return creatPropList;
 }
@@ -171,3 +184,5 @@ void Utils::copyFile(string originalName, string copyName){
         stat(originalName.c_str(), &st);
         chmod(copyName.c_str(), st.st_mode);
 }
+
+

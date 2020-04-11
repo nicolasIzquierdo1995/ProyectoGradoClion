@@ -33,9 +33,13 @@ namespace utils{
         static CompType getCompressedEventDataType();
         static bool replaceString(string& str, const string& from, const string& to);
         static DSetCreatPropList* createCompressedSetCreatPropList(DataSet* dSet);
+        static DSetCreatPropList *createDecompressedSetCreatPropList(DataSet* dSet);
         static PredType getIntType(int* buffer, int count);
         static StdvAndMean getStdvAndMean(int* buffer, int start, int length);
         static PredType getCompressedSignalDataType();
+        static PredType getDecompressedSignalDataType();
         static void copyFile(string originalName, string copyName);
+
+
     };
 }
