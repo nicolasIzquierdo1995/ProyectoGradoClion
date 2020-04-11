@@ -75,7 +75,7 @@ CompType Utils::getCompressedEventDataType() {
 }
 
 PredType Utils::getCompressedSignalDataType(){
-    return PredType::NATIVE_UINT16;
+    return PredType::NATIVE_INT16;
 }
 
 PredType Utils::getDecompressedSignalDataType(){

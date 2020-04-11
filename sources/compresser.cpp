@@ -14,7 +14,7 @@ using namespace h5repack;
 
 map<string,int> globalAttributes;
 
-uint16_t *getDecompressedSignalBuffer(H5File file, DataSet *pSet);
+
 
 Compresser::Compresser(){
 
@@ -76,8 +76,8 @@ compressedEventData* getCompressedEventsBuffer(H5File file, DataSet *eventsDatas
         eventBuffer[i].length = originalEventsBuffer[i].length;
     }
 
-    eventBuffer[eventsCount].skip = 0;
-    eventBuffer[eventsCount].length = originalEventsBuffer[eventsCount].length;
+    eventBuffer[eventsCount-1].skip = 0;
+    eventBuffer[eventsCount-1].length = originalEventsBuffer[eventsCount].length;
 
     return eventBuffer;
 }
@@ -136,7 +136,7 @@ int16_t* getCompressedSignalBuffer(H5File file, DataSet *signalDataset) {
     uint16_t* signalsBuffer = new uint16_t[signalsCount];
 
     int16_t* newSignalsBuffer = new int16_t[signalsCount];
-    signalDataset->read(signalsBuffer,PredType::NATIVE_INT16,*signalDataSpace,*signalDataSpace);
+    signalDataset->read(signalsBuffer,PredType::NATIVE_UINT16,*signalDataSpace,*signalDataSpace);
 
     globalAttributes.insert(pair<string,int>("firstRead",signalsBuffer[0]));
     for(int i = 1; i< signalsCount-1; i++){
@@ -147,12 +147,20 @@ int16_t* getCompressedSignalBuffer(H5File file, DataSet *signalDataset) {
 }
 
 uint16_t *getDecompressedSignalBuffer(H5File file, DataSet *pSet) {
-    return nullptr;
+    Group root = file.openGroup("/");
+    if(root.attrExists("firstRead")) {
+        int compLvl;
+        Attribute at = root.openAttribute("firstRead");
+        DataType dt = at.getDataType();
+        at.read(dt,&compLvl);
+    }else
+        return  nullptr;
 }
 
 void unlink(H5File file, string groupName) {
     file.unlink(groupName);
 }
+
 void compressEventsAndReads(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
     DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
