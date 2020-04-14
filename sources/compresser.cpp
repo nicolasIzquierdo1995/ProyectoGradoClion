@@ -212,6 +212,29 @@ void compressEventsAndReads(H5File file){
     newSignalsDataset->write(compressedSignalBuffer, compressedSignalDataType, *signalsDataSpace, *signalsDataSpace);
 }
 
+void getOnlyReads(H5File file){
+    DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
+    string readsDatasetName = signalsDataset->getObjName();
+    DataSpace* signalsDataSpace = new DataSpace(signalsDataset->getSpace());
+    DataType signalDataType = signalsDataset->getDataType();
+    hsize_t signalDims[signalsDataSpace->getSimpleExtentNdims()];
+    signalsDataSpace->getSimpleExtentDims(signalDims);
+    int signalsCount = (int)(signalDims[0]);
+    DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(signalsDataset);
+
+    int16_t* newSignalsBuffer = new int16_t[signalsCount];
+    signalsDataset->read(newSignalsBuffer,Utils::getDecompressedSignalDataType(),*signalsDataSpace,*signalsDataSpace);
+
+    string newFileName = file.getFileName();
+    Utils::replaceString(newFileName, "_copy.fast5", "_repacked.fast5");
+
+    H5File newFile(newFileName, H5F_ACC_TRUNC);
+
+    DataSet * newSignalsDataset = new DataSet(newFile.createDataSet("/Signal", signalDataType, *signalsDataSpace, *readsPList));
+    newSignalsDataset->write(newSignalsBuffer, signalDataType, *signalsDataSpace, *signalsDataSpace);
+}
+
+
 void deCompressEventsAndReads(H5File file){
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
     DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
@@ -228,7 +251,7 @@ void deCompressEventsAndReads(H5File file){
     string newFileName = file.getFileName();
     Utils::replaceString(newFileName, "_copy.fast5", "_decompressed.fast5");
 
-    //unlink(file, eventsDatasetName);
+    unlink(file, eventsDatasetName);
     unlink(file, readsDatasetName);
     h5repack::repack(file, newFileName, "3");
 
@@ -261,6 +284,8 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
         h5repack::repack(file, compressedFileName, "9");
     } else if(compressionLevel == 2){
         compressEventsAndReads(file);
+    } else if(compressionLevel == 3){
+        getOnlyReads(file);
     }
 
     saveAtributes(compressedFileName);
