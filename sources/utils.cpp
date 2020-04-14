@@ -13,7 +13,6 @@ using namespace utils;
 DataSet* Utils::GetDataset(H5File file, string path, string dataSetGrandParentName, string dataSetName){
     Group group = file.openGroup(path);
     hsize_t objCount =  group.getNumObjs() ;
-    cout << objCount << endl;
     string parentName;
     for (int i = 0; i < objCount; i++){
         string objectName = group.getObjnameByIdx(i);

@@ -141,7 +141,7 @@ int16_t* getCompressedSignalBuffer(H5File file, DataSet *signalDataset) {
     globalAttributes.insert(pair<string,int>("firstRead",signalsBuffer[0]));
 
     newSignalsBuffer[0] = 0;
-    for(int i = 1; i< signalsCount-1; i++){
+    for(int i = 1; i< signalsCount; i++){
         newSignalsBuffer[i] = signalsBuffer[i] - signalsBuffer[i - 1];
     }
 
@@ -160,13 +160,13 @@ uint16_t* getDecompressedSignalBuffer(H5File file, DataSet *signalDataset) {
         hsize_t signalDims[signalDataSpace->getSimpleExtentNdims()];
         signalDataSpace->getSimpleExtentDims(signalDims);
         int signalsCount = (int)(signalDims[0]);
-        int16_t* signalsBuffer = new int16_t[signalsCount];
+        int* signalsBuffer = new int[signalsCount];
 
         uint16_t* newSignalsBuffer = new uint16_t[signalsCount];
         signalDataset->read(signalsBuffer,Utils::getCompressedSignalDataType(),*signalDataSpace,*signalDataSpace);
 
         newSignalsBuffer[0] = firstRead;
-        for(int i = 1; i< signalsCount-1; i++){
+        for(int i = 1; i< signalsCount; i++){
             newSignalsBuffer[i] = newSignalsBuffer[i-1] + signalsBuffer[i];
         }
 
@@ -249,6 +249,7 @@ void deCompressEventsAndReads(H5File file){
 
 void Compresser::CompressFile(H5File file, int compressionLevel){
 
+    cout<< "Compression Level: " << compressionLevel << endl;
     string compressedFileName = file.getFileName();
     Utils::replaceString(compressedFileName, "_copy.fast5", "_repacked.fast5");
     if(compressionLevel > 0)
@@ -266,6 +267,8 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
 }
 
 void Compresser::DeCompressFile(H5File file, int compressionLevel){
+
+    cout<< "Decompression Level: " << compressionLevel << endl;
     string fileName = file.getFileName();
     string deCompressedFileName = fileName;
     Utils::replaceString(deCompressedFileName, "_copy.fast5", "_deCompressed.fast5");
