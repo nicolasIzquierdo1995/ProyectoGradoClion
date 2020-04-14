@@ -13,5 +13,7 @@ namespace compresser{
     Compresser();
     void CompressFile(H5File file, int compressionLevel);
     void DeCompressFile(H5File file, int compressionLevel);
+
+      void removeLogs(H5File file);
   };
 }

@@ -268,6 +268,12 @@ void deCompressEventsAndReads(H5File file){
     newSignalsDataset->write(decompressedSignalBuffer, decompressedSignalDataType);
 }
 
+void Compresser::removeLogs(H5File file) {
+    Utils::unlinkLogs(file,"/");
+    string newFileName = file.getFileName();
+    Utils::replaceString(newFileName, "_copy.fast5", "_repacked.fast5");
+    h5repack::repack(file, newFileName, "9");
+}
 
 
 void Compresser::CompressFile(H5File file, int compressionLevel){
@@ -286,6 +292,8 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
         compressEventsAndReads(file);
     } else if(compressionLevel == 3){
         getOnlyReads(file);
+    } else if(compressionLevel == 4){
+        removeLogs(file);
     }
 
     saveAtributes(compressedFileName);
@@ -303,5 +311,7 @@ void Compresser::DeCompressFile(H5File file, int compressionLevel){
         deCompressEventsAndReads(file);
     }
 }
+
+
 
 

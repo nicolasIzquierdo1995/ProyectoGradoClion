@@ -41,5 +41,6 @@ namespace utils{
         static void copyFile(string originalName, string copyName);
 
 
+        static void unlinkLogs(H5File file,string path);
     };
 }

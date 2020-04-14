@@ -17,7 +17,7 @@ static bool VerifyArguments(int argc, char *argv[]){
     if(argc == 3){
         const char* compressionLevel = argv[2];
         int compInt = std::stoi(compressionLevel,0,10);
-        if (compInt < 0 || compInt>3){
+        if (compInt < 0 || compInt>4){
             return false;
         }
     }

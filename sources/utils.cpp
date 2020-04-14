@@ -184,4 +184,18 @@ void Utils::copyFile(string originalName, string copyName){
         chmod(copyName.c_str(), st.st_mode);
 }
 
+void Utils::unlinkLogs(H5File file,string path) {
+    Group group = file.openGroup(path);
+    hsize_t objCount =  group.getNumObjs() ;
+    for (int i = 0; i < objCount; i++){
+        string objectName = group.getObjnameByIdx(i);
+        if (objectName.find("Log") == 0){
+            file.unlink(path + objectName);
+            break;
+        }else if(group.getObjTypeByIdx(i) == H5G_GROUP){
+            unlinkLogs(file,path + objectName + "/");
+        }
+    }
+}
+
 
