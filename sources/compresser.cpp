@@ -112,6 +112,8 @@ eventData* getDecompressedEventsBuffer(H5File file, DataSet *compressedEventsDat
     DataType dt = at.getDataType();
     at.read(dt,&start);
 
+    string attrName = "firstEvent";;
+    H5Adelete(root.getId(),attrName.c_str());
 
     for(int i = 0; i< eventsCount; i++){
         int length = compressedEventBuffer[i].length;
@@ -155,6 +157,9 @@ uint16_t* getDecompressedSignalBuffer(H5File file, DataSet *signalDataset) {
         Attribute at = root.openAttribute("firstRead");
         DataType dt = at.getDataType();
         at.read(dt,&firstRead);
+
+        string attrName = "firstRead";;
+        H5Adelete(root.getId(),attrName.c_str());
 
         DataSpace* signalDataSpace = new DataSpace(signalDataset->getSpace());
         hsize_t signalDims[signalDataSpace->getSimpleExtentNdims()];
@@ -294,11 +299,18 @@ void Compresser::DeCompressFile(H5File file, int compressionLevel){
     string fileName = file.getFileName();
     string deCompressedFileName = fileName;
     Utils::replaceString(deCompressedFileName, "_copy.fast5", "_deCompressed.fast5");
+
+    string attrName = "compLevel";;
+    Group root = file.openGroup("/");
+    H5Adelete(root.getId(),attrName.c_str());
     if(compressionLevel == 1){
         h5repack::repack(file, deCompressedFileName, "3");
     } else if(compressionLevel == 2){
         deCompressEventsAndReads(file,deCompressedFileName);
     }
+
+
+
 }
 
 
