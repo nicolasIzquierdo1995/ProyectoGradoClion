@@ -10,19 +10,25 @@ using namespace boost::filesystem;
 using namespace boost::lambda;
 using namespace utils;
 
-DataSet* Utils::GetDataset(H5File file, string path, string dataSetGrandParentName, string dataSetName){
-    Group group = file.openGroup(path);
-    hsize_t objCount =  group.getNumObjs() ;
-    string parentName;
-    for (int i = 0; i < objCount; i++){
-        string objectName = group.getObjnameByIdx(i);
-        if (objectName.find(dataSetGrandParentName) == 0){
-            parentName = objectName;
-            break;
+DataSet* Utils::GetDataset(H5File file, string path, string dataSetGrandParentName, string dataSetName)
+{
+    try {
+        Group group = file.openGroup(path);
+        hsize_t objCount =  group.getNumObjs() ;
+        string parentName;
+        for (int i = 0; i < objCount; i++){
+            string objectName = group.getObjnameByIdx(i);
+            if (objectName.find(dataSetGrandParentName) == 0){
+                parentName = objectName;
+                break;
+            }
         }
+        DataSet* dataset = new DataSet(file.openDataSet(path + "/" + parentName + "/" + dataSetName));
+        return dataset;
     }
-    DataSet* dataset = new DataSet(file.openDataSet(path + "/" + parentName + "/" + dataSetName));
-    return dataset;    
+    catch(Exception ex) {
+        return NULL;
+    }
 }
 
 int Utils::GetFilesCount(string filePath){
