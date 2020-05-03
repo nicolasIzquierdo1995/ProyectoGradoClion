@@ -212,7 +212,7 @@ void Utils::listDatasets(string name,H5File file,string path,datasetList result)
     for (int i = 0; i < objCount; i++){
         string objectName = group.getObjnameByIdx(i);
         if (group.getObjTypeByIdx(i) == H5G_DATASET && objectName.find(name) == 0 ){
-            result.ds.push_back(file.openDataSet(objectName));
+            result.ds.push_back(file.openDataSet(path+objectName));
             result.size++;
             break;
         }else if(group.getObjTypeByIdx(i) == H5G_GROUP){

@@ -292,6 +292,11 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
     if(compressionLevel > 0)
         globalAttributes.insert(pair<string,int>("compLevel",compressionLevel));
 
+    vector<DataSet> vec;
+    datasetList DL =  {0,vec};
+    Utils::listDatasets("Signal",file,"/",DL);
+    int test = vec.size();
+
     if(compressionLevel == 0){
         stats(file);
     } else if(compressionLevel == 1){
