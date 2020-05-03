@@ -50,7 +50,7 @@ namespace utils{
         static void unlinkLogs(H5File file,string path);
 
 
-        static void listDatasets(string name,H5File file,string path,datasetList result);
+        static datasetList* listDatasets(string name,H5File file,string path,datasetList* result);
 
 
     };
