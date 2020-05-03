@@ -272,9 +272,9 @@ void deCompressEventsAndReads(H5File file,string newFileName){
     }
 
     PredType decompressedSignalDataType = Utils::getDecompressedSignalDataType();
-    DSetCreatPropList* readspList = Utils::createDecompressedSetCreatPropList(signalsDataset);
+    DSetCreatPropList* readsPList = Utils::createDecompressedSetCreatPropList(signalsDataset);
 
-    DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(readsDatasetName, decompressedSignalDataType, *signalsDataSpace, *readspList));
+    DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(readsDatasetName, decompressedSignalDataType, *signalsDataSpace, *readsPList));
     newSignalsDataset->write(decompressedSignalBuffer, decompressedSignalDataType);
 }
 

@@ -206,4 +206,19 @@ void Utils::unlinkLogs(H5File file,string path) {
     }
 }
 
+void Utils::listDatasets(string name,H5File file,string path,datasetList result){
+    Group group = file.openGroup(path);
+    hsize_t objCount =  group.getNumObjs() ;
+    for (int i = 0; i < objCount; i++){
+        string objectName = group.getObjnameByIdx(i);
+        if (group.getObjTypeByIdx(i) == H5G_DATASET && objectName.find(name) == 0 ){
+            result.ds.push_back(file.openDataSet(objectName));
+            result.size++;
+            break;
+        }else if(group.getObjTypeByIdx(i) == H5G_GROUP){
+            listDatasets(name,file,path + objectName + "/",result);
+        }
+    }
+}
+
 

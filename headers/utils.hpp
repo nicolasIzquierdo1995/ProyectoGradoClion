@@ -1,10 +1,16 @@
 // Header file:
 #include <string>
+#include <vector>
 #include "H5Cpp.h"
 
 using namespace H5;
 using namespace std;
 namespace utils{
+
+    typedef struct datasetList{
+        int size;
+        vector<DataSet> ds;
+    }datasetList;
 
     typedef struct eventData {
         long start;
@@ -41,8 +47,11 @@ namespace utils{
         static PredType getCompressedSignalDataType();
         static PredType getDecompressedSignalDataType();
         static void copyFile(string originalName, string copyName);
-
-
         static void unlinkLogs(H5File file,string path);
+
+
+        static void listDatasets(string name,H5File file,string path,datasetList result);
+
+
     };
 }
