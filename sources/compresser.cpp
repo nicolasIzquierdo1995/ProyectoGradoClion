@@ -162,7 +162,7 @@ uint16_t* getDecompressedSignalBuffer(H5File file, DataSet *signalDataset) {
         int* signalsBuffer = new int[signalsCount];
 
         uint16_t* newSignalsBuffer = new uint16_t[signalsCount];
-        signalDataset->read(signalsBuffer,Utils::getCompressedSignalDataType(),*signalDataSpace,*signalDataSpace);
+        signalDataset->read(signalsBuffer,PredType::NATIVE_INT,*signalDataSpace,*signalDataSpace);
 
         newSignalsBuffer[0] = firstRead;
         for(int i = 1; i< signalsCount; i++){
