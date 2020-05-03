@@ -74,10 +74,14 @@ compressedEventData* getCompressedEventsBuffer(H5File file, DataSet *eventsDatas
     for(int i = 0; i< eventsCount - 1; i++){
         eventBuffer[i].skip  = originalEventsBuffer[i + 1].start - (originalEventsBuffer[i].start + originalEventsBuffer[i].length);
         eventBuffer[i].length = originalEventsBuffer[i].length;
+        eventBuffer[i].stdv = originalEventsBuffer[i].stdv;
+        eventBuffer[i].mean = originalEventsBuffer[i].mean;
     }
 
     eventBuffer[eventsCount-1].skip = 0;
     eventBuffer[eventsCount-1].length = originalEventsBuffer[eventsCount-1].length;
+    eventBuffer[eventsCount-1].stdv = originalEventsBuffer[eventsCount-1].stdv;
+    eventBuffer[eventsCount-1].mean = originalEventsBuffer[eventsCount-1].mean;
 
     return eventBuffer;
 }
@@ -90,15 +94,6 @@ eventData* getDecompressedEventsBuffer(H5File file, DataSet *compressedEventsDat
     hsize_t compressedEventsD[compressedEventDS->getSimpleExtentNdims()];
     compressedEventDS->getSimpleExtentDims(compressedEventsD);
     unsigned long eventsCount = (unsigned long)(compressedEventsD[0]);
-
-    DataSet* signalDataset = Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
-    DataSpace* signalDataSpace = new DataSpace(signalDataset->getSpace());
-    hsize_t signalDims[signalDataSpace->getSimpleExtentNdims()];
-    signalDataSpace->getSimpleExtentDims(signalDims);
-    int signalsCount = (int)(signalDims[0]);
-    int* signalsBuffer = new int[signalsCount];
-
-    signalDataset->read(signalsBuffer,PredType::NATIVE_INT,*signalDataSpace,*signalDataSpace);
 
     eventData* decompressedEventsBuffer = new eventData[eventsCount];
     compressedEventData* compressedEventBuffer = new compressedEventData [eventsCount];;
@@ -119,9 +114,8 @@ eventData* getDecompressedEventsBuffer(H5File file, DataSet *compressedEventsDat
         int length = compressedEventBuffer[i].length;
         decompressedEventsBuffer[i].length  = length;
         decompressedEventsBuffer[i].start = start;
-        StdvAndMean stdvAndMean = Utils::getStdvAndMean(signalsBuffer, readStart, length);
-        decompressedEventsBuffer[i].mean  = stdvAndMean.mean;
-        decompressedEventsBuffer[i].stdv = stdvAndMean.stdv;
+        decompressedEventsBuffer[i].mean  = compressedEventBuffer[i].mean;
+        decompressedEventsBuffer[i].stdv = compressedEventBuffer[i].stdv;
         start = start + length + compressedEventBuffer[i].skip;
         readStart = readStart + length + compressedEventBuffer[i].skip;
     }
@@ -258,8 +252,8 @@ void deCompressEventsAndReads(H5File file,string newFileName){
     DSetCreatPropList* eventsPlist = Utils::createDecompressedSetCreatPropList(eventsDataset);
     DSetCreatPropList* readspList = Utils::createDecompressedSetCreatPropList(signalsDataset);
 
-    //DataSet * newEventsDataset = new DataSet(newFile.createDataSet(datasetName, eventDataType, *eventsDataSpace, *eventsPlist));
-    //newEventsDataset->write(decompressedEventBuffer, eventDataType);
+    DataSet * newEventsDataset = new DataSet(newFile.createDataSet(eventsDatasetName, eventDataType, *eventsDataSpace, *eventsPlist));
+    newEventsDataset->write(decompressedEventBuffer, eventDataType);
     DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(readsDatasetName, decompressedSignalDataType, *signalsDataSpace, *readspList));
     newSignalsDataset->write(decompressedSignalBuffer, decompressedSignalDataType);
 }

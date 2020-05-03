@@ -70,6 +70,8 @@ CompType Utils::getCompressedEventDataType() {
     CompType compressedEventDataType(sizeof(compressedEventData));
     compressedEventDataType.insertMember("skip", HOFFSET(compressedEventData,skip), PredType::NATIVE_INT8);
     compressedEventDataType.insertMember("length", HOFFSET(compressedEventData,length) , PredType::NATIVE_INT8);
+    compressedEventDataType.insertMember("mean", HOFFSET(compressedEventData,mean), PredType::NATIVE_FLOAT);
+    compressedEventDataType.insertMember("stdv", HOFFSET(compressedEventData,stdv), PredType::NATIVE_FLOAT);
     return compressedEventDataType;
 }
 

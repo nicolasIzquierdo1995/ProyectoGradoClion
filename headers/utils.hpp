@@ -16,6 +16,8 @@ namespace utils{
     typedef struct compressedEventData {
         uint8_t skip;
         uint8_t length;
+        float mean;
+        float stdv;
     } compressedEventData;
 
     typedef struct StdvAndMean {
