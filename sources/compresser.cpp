@@ -179,31 +179,42 @@ void unlink(H5File file, string groupName) {
 }
 
 void compressEventsAndReads(H5File file,string newFileName){
+    compressedEventData* compressedEventsBuffer;
+    string eventsDatasetName;
+    DataSpace* eventsDataSpace;
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
+
+    if (eventsDataset != NULL){
+        eventsDatasetName = eventsDataset->getObjName();
+        eventsDataSpace = new DataSpace(eventsDataset->getSpace());
+        compressedEventsBuffer = getCompressedEventsBuffer(file, eventsDataset);
+        unlink(file, eventsDatasetName);
+    }
+
     DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
-
     int16_t* compressedSignalBuffer = getCompressedSignalBuffer(file, signalsDataset);
-    compressedEventData* compressedEventsBuffer = getCompressedEventsBuffer(file, eventsDataset);
-
-    string eventsDatasetName = eventsDataset->getObjName();
     string readsDatasetName = signalsDataset->getObjName();
-
-    DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
     DataSpace* signalsDataSpace = new DataSpace(signalsDataset->getSpace());
-
-    unlink(file, eventsDatasetName);
     unlink(file, readsDatasetName);
+
+
+
+
+
     h5repack::repack(file, newFileName, "9");
 
     H5File newFile(newFileName, H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType();
+    if (eventsDataset != NULL) {
+        CompType compressedEventDataType = Utils::getCompressedEventDataType();
+        DSetCreatPropList* eventsPlist =  Utils::createCompressedSetCreatPropList(eventsDataset);
+        DataSet* newEventsDataset = new DataSet(newFile.createDataSet(eventsDatasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
+        newEventsDataset->write(compressedEventsBuffer, compressedEventDataType);
+    }
+
     PredType compressedSignalDataType = Utils::getCompressedSignalDataType();
-    DSetCreatPropList* eventsPlist =  Utils::createCompressedSetCreatPropList(eventsDataset);
     DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(signalsDataset);
 
-    DataSet * newEventsDataset = new DataSet(newFile.createDataSet(eventsDatasetName, compressedEventDataType, *eventsDataSpace, *eventsPlist));
-    newEventsDataset->write(compressedEventsBuffer, compressedEventDataType);
     DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(readsDatasetName, compressedSignalDataType, *signalsDataSpace, *readsPList));
     newSignalsDataset->write(compressedSignalBuffer, compressedSignalDataType, *signalsDataSpace, *signalsDataSpace);
 }
@@ -229,31 +240,40 @@ void getOnlyReads(H5File file,string newFileName){
 
 
 void deCompressEventsAndReads(H5File file,string newFileName){
+    eventData* decompressedEventBuffer;
+    string eventsDatasetName;
+    DataSpace* eventsDataSpace;
     DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
     DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
 
-    eventData * decompressedEventBuffer = getDecompressedEventsBuffer(file, eventsDataset);
+    if (eventsDataset != NULL)
+    {
+        decompressedEventBuffer = getDecompressedEventsBuffer(file, eventsDataset);
+        eventsDatasetName = eventsDataset->getObjName();
+        eventsDataSpace = new DataSpace(eventsDataset->getSpace());
+        unlink(file, eventsDatasetName);
+    }
+
     uint16_t* decompressedSignalBuffer = getDecompressedSignalBuffer(file,signalsDataset);
-
-    string eventsDatasetName = eventsDataset->getObjName();
     string readsDatasetName = signalsDataset->getObjName();
-
-    DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
     DataSpace* signalsDataSpace = new DataSpace(signalsDataset->getSpace());
-
-    unlink(file, eventsDatasetName);
     unlink(file, readsDatasetName);
+
     h5repack::repack(file, newFileName, "3");
 
     H5File newFile(newFileName, H5F_ACC_RDWR);
 
-    CompType eventDataType = Utils::getEventDataType();
+    if (eventsDataset != NULL)
+    {
+        CompType eventDataType = Utils::getEventDataType();
+        DSetCreatPropList* eventsPlist = Utils::createDecompressedSetCreatPropList(eventsDataset);
+        DataSet * newEventsDataset = new DataSet(newFile.createDataSet(eventsDatasetName, eventDataType, *eventsDataSpace, *eventsPlist));
+        newEventsDataset->write(decompressedEventBuffer, eventDataType);
+    }
+
     PredType decompressedSignalDataType = Utils::getDecompressedSignalDataType();
-    DSetCreatPropList* eventsPlist = Utils::createDecompressedSetCreatPropList(eventsDataset);
     DSetCreatPropList* readspList = Utils::createDecompressedSetCreatPropList(signalsDataset);
 
-    DataSet * newEventsDataset = new DataSet(newFile.createDataSet(eventsDatasetName, eventDataType, *eventsDataSpace, *eventsPlist));
-    newEventsDataset->write(decompressedEventBuffer, eventDataType);
     DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(readsDatasetName, decompressedSignalDataType, *signalsDataSpace, *readspList));
     newSignalsDataset->write(decompressedSignalBuffer, decompressedSignalDataType);
 }
