@@ -39,21 +39,43 @@ void saveAtributes(string fileName){
 }
 
 void stats(H5File file){
-    CompType eventDataType = Utils::getEventDataType();
-    DataSet* eventsDataset =  Utils::GetDataset(file, "/Analyses/EventDetection_000/Reads", "Read", "Events");
-    DataSpace* eventsDataSpace = new DataSpace(eventsDataset->getSpace());
-    hsize_t eventsDims[eventsDataSpace->getSimpleExtentNdims()];
-    eventsDataSpace->getSimpleExtentDims(eventsDims);
-    eventData* eventsBuffer = new eventData[(unsigned long)(eventsDims[0])];
-    eventsDataset->read(eventsBuffer,eventDataType,*eventsDataSpace,*eventsDataSpace);
-    int skips[(unsigned long)(eventsDims[0])];
-    for(int i = 0; i<(unsigned long)(eventsDims[0]);i++){
-        skips[i] = eventsBuffer[i+1].start - (eventsBuffer[i].start + eventsBuffer[i].length);
+
+    vector<DataSet> vec2;
+    map<int,int>::iterator it;
+    map<int,int> readsMap;
+
+    datasetList* signalDataSets = new datasetList {0,vec2};
+    Utils::listDatasets("Signal",file,"/", signalDataSets);
+    string* signalDatasetNames = new string[signalDataSets->size];
+    DataSpace** signalDataSpaces = new DataSpace*[signalDataSets->size];
+
+    int i = 0;
+    for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
+        signalDatasetNames[i] = (*it).getObjName();
+        signalDataSpaces[i] = new DataSpace((*it).getSpace());
+
+        DataSpace* signalDataSpace = new DataSpace((&*it)->getSpace());
+        hsize_t signalDims[signalDataSpace->getSimpleExtentNdims()];
+        signalDataSpace->getSimpleExtentDims(signalDims);
+        int signalsCount = (int)(signalDims[0]);
+        int16_t* signalsBuffer = new int16_t[signalsCount];
+        (&*it)->read(signalsBuffer,Utils::getCompressedSignalDataType(),*signalDataSpace,*signalDataSpace);
+
+        for(int j = 0; j< signalsCount; j++){
+            if (readsMap.find(signalsBuffer[j]) == readsMap.end()){
+                readsMap[signalsBuffer[j]] = 1;
+            }
+            else {
+                readsMap[signalsBuffer[j]] = readsMap[signalsBuffer[j]] + 1;
+            }
+        }
+
+        i++;
     }
-    for(int j = 0; j<(unsigned long)(eventsDims[0]);j++){
-        cout<<skips[j]<<",";
+
+    for(it = readsMap.begin(); it != readsMap.end(); ++it) {
+        cout<< it->first << "," << it->second << endl;
     }
-        cout<<endl;
 }
 
 compressedEventData* getCompressedEventsBuffer(H5File file, DataSet *eventsDataset) {
@@ -203,7 +225,7 @@ void compressEventsAndReads(H5File file,string newFileName){
         eventsDatasetNames[i] = (*it).getObjName();
         eventsDataSpaces[i] = new DataSpace((*it).getSpace());
         compressedEventsBuffers[i] = getCompressedEventsBuffer(file, &*it);
-        unlink(file, (*it).getObjName().c_str());
+        //unlink(file, (*it).getObjName().c_str());
         i++;
     }
 
