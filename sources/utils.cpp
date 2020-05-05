@@ -206,7 +206,8 @@ void Utils::unlinkLogs(H5File file,string path) {
     }
 }
 
-datasetList* Utils::listDatasets(string name,H5File file,string path,datasetList* result){
+
+void Utils::listDatasets(string name,H5File file,string path,datasetList* result){
     Group group = file.openGroup(path);
     hsize_t objCount =  group.getNumObjs() ;
     for (int i = 0; i < objCount; i++){
@@ -216,10 +217,9 @@ datasetList* Utils::listDatasets(string name,H5File file,string path,datasetList
             result->size++;
             break;
         }else if(group.getObjTypeByIdx(i) == H5G_GROUP){
-            result = listDatasets(name,file,path + objectName + "/",result);
+            listDatasets(name,file,path + objectName + "/",result);
         }
     }
-    return result;
 }
 
 

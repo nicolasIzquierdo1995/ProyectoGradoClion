@@ -48,9 +48,7 @@ namespace utils{
         static PredType getDecompressedSignalDataType();
         static void copyFile(string originalName, string copyName);
         static void unlinkLogs(H5File file,string path);
-
-
-        static datasetList* listDatasets(string name,H5File file,string path,datasetList* result);
+        static void listDatasets(string name,H5File file,string path,datasetList* result);
 
 
     };
