@@ -222,7 +222,7 @@ void compressEventsAndReads(H5File file,string newFileName){
     for (vector<DataSet>::iterator it = eventDataSets->ds.begin(); it != eventDataSets->ds.end(); ++it){
         DSetCreatPropList* eventsPlist =  Utils::createCompressedSetCreatPropList(&*it);
         DataSet* newEventsDataset = new DataSet(newFile.createDataSet(eventsDatasetNames[i], compressedEventDataType, *eventsDataSpaces[i], *eventsPlist));
-        newEventsDataset->write(compressedSignalBuffers[i], compressedEventDataType);
+        newEventsDataset->write(compressedEventsBuffers[i], compressedEventDataType);
     }
 
     i = 0;
