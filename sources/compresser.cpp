@@ -41,7 +41,7 @@ void saveAtributes(string fileName){
 void stats(H5File file){
 
     vector<DataSet> vec2;
-    map<int,int>::iterator it;
+    map<int,int>::iterator it2;
     map<int,int> readsMap;
 
     datasetList* signalDataSets = new datasetList {0,vec2};
@@ -58,23 +58,29 @@ void stats(H5File file){
         hsize_t signalDims[signalDataSpace->getSimpleExtentNdims()];
         signalDataSpace->getSimpleExtentDims(signalDims);
         int signalsCount = (int)(signalDims[0]);
-        int16_t* signalsBuffer = new int16_t[signalsCount];
-        (&*it)->read(signalsBuffer,Utils::getCompressedSignalDataType(),*signalDataSpace,*signalDataSpace);
+        uint16_t * signalsBuffer = new uint16_t[signalsCount];
+        (&*it)->read(signalsBuffer,Utils::getDecompressedSignalDataType(),*signalDataSpace,*signalDataSpace);
 
-        for(int j = 0; j< signalsCount; j++){
-            if (readsMap.find(signalsBuffer[j]) == readsMap.end()){
-                readsMap[signalsBuffer[j]] = 1;
+        int firstSignal = signalsBuffer[0];
+        for(int j = 1; j< signalsCount; j++){
+            int diff = signalsBuffer[j] - firstSignal;
+            if (diff < -2500){
+                int cuco = 1;
+            }
+            if (readsMap.find(diff) == readsMap.end()){
+                readsMap[diff] = 1;
             }
             else {
-                readsMap[signalsBuffer[j]] = readsMap[signalsBuffer[j]] + 1;
+                readsMap[diff] = readsMap[diff] + 1;
             }
+            firstSignal = signalsBuffer[j];
         }
 
         i++;
     }
 
-    for(it = readsMap.begin(); it != readsMap.end(); ++it) {
-        cout<< it->first << "," << it->second << endl;
+    for(it2 = readsMap.begin(); it2 != readsMap.end(); ++it2) {
+        cout<< it2->first << "," << it2->second << endl;
     }
 }
 
