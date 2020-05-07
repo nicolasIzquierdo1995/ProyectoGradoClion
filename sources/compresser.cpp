@@ -1,16 +1,20 @@
 #include "../headers/compresser.hpp"
 #include "../headers/repack.hpp"
 #include "../headers/utils.hpp"
+#include "../headers/huffman.hpp"
 #include <map>
 #include <string>
 #include <algorithm>
 #include <iostream>
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 using namespace compresser;
 using namespace H5;
 using namespace utils;
 using namespace h5repack;
+using namespace huffman;
 
 map<string,int> globalAttributes;
 
@@ -79,9 +83,16 @@ void stats(H5File file){
         i++;
     }
 
+
+
+    Huffman::generateTree(readsMap);
+    ofstream myfile;
+    myfile.open ("cuco.txt");
+
     for(it2 = readsMap.begin(); it2 != readsMap.end(); ++it2) {
-        cout<< it2->first << "," << it2->second << endl;
+        myfile<< it2->first << "," << it2->second << endl;
     }
+    myfile.close();
 }
 
 compressedEventData* getCompressedEventsBuffer(H5File file, DataSet *eventsDataset) {
