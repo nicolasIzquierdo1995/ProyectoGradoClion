@@ -6,8 +6,8 @@
 #include <string>
 #include <algorithm>
 #include <iostream>
-#include <iostream>
 #include <fstream>
+
 
 using namespace std;
 using namespace compresser;
@@ -17,7 +17,7 @@ using namespace h5repack;
 using namespace huffman;
 
 map<string,int> globalAttributes;
-
+vector<bool> treeC[401];
 
 
 Compresser::Compresser(){
@@ -366,14 +366,38 @@ void removeLogs(H5File file,string newFileName) {
     h5repack::repack(file, newFileName, "9");
 }
 
+void readTreeFile() {
+    ifstream inFile;
+    string line;
+    int pos;
+    string limit = ": ";
+
+    inFile.open("../Files/ganamo.txt");
+    if(!inFile){
+        cout<<"Error al abrir el archivo";
+        exit(1);
+    }
+    while(getline(inFile,line)){
+        string sPos = line.substr(0,line.find(limit));
+        string sVal = line.substr(line.find(limit));
+        pos = stoi(sPos);
+        for(auto a : sVal){
+            treeC[pos].push_back(a == '1'); // no se si es null esto
+        }
+    }
+}
+
 
 void Compresser::CompressFile(H5File file, int compressionLevel){
 
     cout<< "Compression Level: " << compressionLevel << endl;
     string compressedFileName = file.getFileName();
     Utils::replaceString(compressedFileName, "_copy.fast5", "_repacked.fast5");
-    if(compressionLevel > 0)
+    if(compressionLevel > 0){
         globalAttributes.insert(pair<string,int>("compLevel",compressionLevel));
+        readTreeFile();
+    }
+
 
     if(compressionLevel == 0){
         stats(file);
@@ -409,6 +433,8 @@ void Compresser::DeCompressFile(H5File file, int compressionLevel){
 
 
 }
+
+
 
 
 
