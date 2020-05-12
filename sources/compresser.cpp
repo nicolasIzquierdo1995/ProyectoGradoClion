@@ -68,15 +68,15 @@ void stats(H5File file){
         int firstSignal = signalsBuffer[0];
         for(int j = 1; j< signalsCount; j++){
             int diff = signalsBuffer[j] - firstSignal;
-            if (diff < -2500){
-                int cuco = 1;
+            if (diff <= 150 && diff >= -150){
+                if (readsMap.find(diff) == readsMap.end()){
+                    readsMap[diff] = 1;
+                }
+                else {
+                    readsMap[diff] = readsMap[diff] + 1;
+                }
             }
-            if (readsMap.find(diff) == readsMap.end()){
-                readsMap[diff] = 1;
-            }
-            else {
-                readsMap[diff] = readsMap[diff] + 1;
-            }
+
             firstSignal = signalsBuffer[j];
         }
 
