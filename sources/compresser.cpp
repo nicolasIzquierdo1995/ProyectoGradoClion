@@ -279,6 +279,10 @@ void compressEventsAndReads(H5File file,string newFileName){
     }
 }
 
+void compressEventsAndReadsHuff(H5File file,string newFileName){
+
+}
+
 void getOnlyReads(H5File file,string newFileName){
     DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
     string readsDatasetName = signalsDataset->getObjName();
@@ -406,8 +410,10 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
     } else if(compressionLevel == 2){
         compressEventsAndReads(file,compressedFileName);
     } else if(compressionLevel == 3){
-        removeLogs(file,compressedFileName);
+        compressEventsAndReadsHuff(file,compressedFileName);
     } else if(compressionLevel == 4){
+        removeLogs(file,compressedFileName);
+    } else if(compressionLevel == 5){
         getOnlyReads(file,compressedFileName);
     }
 
