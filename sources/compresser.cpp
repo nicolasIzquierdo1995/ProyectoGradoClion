@@ -242,16 +242,18 @@ void unlink(H5File file, string groupName) {
     file.unlink(groupName);
 }
 
-void compressEventsAndReads(H5File file,string newFileName){
+datasetList* getDataSetList(H5File file,string name){
+    vector<DataSet> vec;
+    datasetList* ret = new datasetList{0, vec};
+    Utils::listDatasets(name,file,"/", ret);
+    return ret;
+}
 
-    vector<DataSet> eVec;
-    vector<DataSet> sVec;
+void compressEventsAndReads(H5File file,string newFileName,int compLvl){
 
-    datasetList* eventDataSets = new datasetList{0, eVec};
-    datasetList* signalDataSets = new datasetList{0, sVec};
+    datasetList* eventDataSets = getDataSetList(file,"Events");
+    datasetList* signalDataSets = getDataSetList(file,"Signal");
 
-    Utils::listDatasets("Events",file,"/", eventDataSets);
-    Utils::listDatasets("Signal",file,"/", signalDataSets);
 
     compressedEventData** compressedEventsBuffers = new compressedEventData*[eventDataSets->size];
     string* eventsDatasetNames = new string[eventDataSets->size];
@@ -267,7 +269,7 @@ void compressEventsAndReads(H5File file,string newFileName){
         eventsDatasetNames[i] = (*it).getObjName();
         eventsDataSpaces[i] = new DataSpace((*it).getSpace());
         compressedEventsBuffers[i] = getCompressedEventsBuffer(file, &*it);
-        //unlink(file, (*it).getObjName().c_str());
+        unlink(file, (*it).getObjName().c_str());
         i++;
     }
 
@@ -284,9 +286,7 @@ void compressEventsAndReads(H5File file,string newFileName){
 
     H5File newFile(newFileName, H5F_ACC_RDWR);
 
-    CompType compressedEventDataType = Utils::getCompressedEventDataType();
-    PredType compressedSignalDataType = Utils::getCompressedSignalDataType();
-
+    CompType compressedEventDataType = Utils::getCompressedEventDataType();;
     i = 0;
     for (vector<DataSet>::iterator it = eventDataSets->ds.begin(); it != eventDataSets->ds.end(); ++it){
         DSetCreatPropList* eventsPlist =  Utils::createCompressedSetCreatPropList(&*it);
@@ -295,13 +295,41 @@ void compressEventsAndReads(H5File file,string newFileName){
         i++;
     }
 
-    i = 0;
-    for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
-        DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&*it);
-        DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, *signalDataSpaces[i], *readsPList));
-        newSignalsDataset->write(compressedSignalBuffers[i], compressedSignalDataType, *signalDataSpaces[i], *signalDataSpaces[i]);
-        i++;
+    switch (compLvl) {
+        case 2:{
+            PredType compressedSignalDataType = Utils::getCompressedSignalDataType();
+            i = 0;
+            for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
+                DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&*it);
+                DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, *signalDataSpaces[i], *readsPList));
+                newSignalsDataset->write(compressedSignalBuffers[i], compressedSignalDataType, *signalDataSpaces[i], *signalDataSpaces[i]);
+                i++;
+            }
+            break;
+        }
+
+        case 3:{
+            PredType compressedSignalDataType = Utils::getHuffmanSignalDataType();
+            //ACA SE TIENE QUE SETEAR LOS DATOS NUEVOS PARA ESCRIBIR EL DATASET (compressedSignalBuffers)
+            i = 0;
+            for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
+                DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&*it);
+                DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, *signalDataSpaces[i], *readsPList));
+                newSignalsDataset->write(compressedSignalBuffers[i], compressedSignalDataType, *signalDataSpaces[i], *signalDataSpaces[i]);
+                i++;
+            }
+            break;
+        }
+
     }
+
+
+
+
+}
+
+void compressEventsAndReadsHuff(H5File file,string newFileName){
+
 }
 
 void getOnlyReads(H5File file,string newFileName){
@@ -322,7 +350,6 @@ void getOnlyReads(H5File file,string newFileName){
     DataSet * newSignalsDataset = new DataSet(newFile.createDataSet("/Signal", signalDataType, *signalsDataSpace, *readsPList));
     newSignalsDataset->write(newSignalsBuffer, signalDataType, *signalsDataSpace, *signalsDataSpace);
 }
-
 
 void deCompressEventsAndReads(H5File file,string newFileName){
     vector<DataSet> eVec;
@@ -428,11 +455,11 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
         stats(file);
     } else if(compressionLevel == 1){
         h5repack::repack(file, compressedFileName, "9");
-    } else if(compressionLevel == 2){
-        compressEventsAndReads(file,compressedFileName);
-    } else if(compressionLevel == 3){
-        removeLogs(file,compressedFileName);
+    } else if(compressionLevel == 2 || compressionLevel == 3){
+        compressEventsAndReads(file,compressedFileName,compressionLevel);
     } else if(compressionLevel == 4){
+        removeLogs(file,compressedFileName);
+    } else if(compressionLevel == 5){
         getOnlyReads(file,compressedFileName);
     }
 

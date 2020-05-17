@@ -44,6 +44,7 @@ namespace utils{
         static DSetCreatPropList *createDecompressedSetCreatPropList(DataSet* dSet);
         static PredType getIntType(int* buffer, int count);
         static StdvAndMean getStdvAndMean(int* buffer, int start, int length);
+        static PredType getHuffmanSignalDataType();
         static PredType getCompressedSignalDataType();
         static PredType getDecompressedSignalDataType();
         static void copyFile(string originalName, string copyName);
