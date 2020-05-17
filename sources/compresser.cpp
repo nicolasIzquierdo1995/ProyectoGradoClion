@@ -42,19 +42,44 @@ void saveAtributes(string fileName){
     }
 }
 
+void getHuffmanMapFromFile() {
+    ifstream inFile;
+    string line;
+    map<string,int> huffmanMap;
+    vector<string> huffmanCodes;
+    int pos;
+    string limit = ": ";
+
+    inFile.open("../Files/ganamo.txt");
+    if(!inFile){
+        cout<<"Error al abrir el archivo";
+        exit(1);
+    }
+    while(getline(inFile,line)){
+        string sPos = line.substr(0,line.find(limit));
+        string sVal = line.substr(line.find(limit));
+        pos = stoi(sPos);
+        huffmanMap[sVal] = pos;
+        huffmanCodes.push_back(sVal);
+    }
+    MinHeapNode* cuco = (struct MinHeapNode*)malloc(sizeof(struct MinHeapNode));
+    Huffman::generateNewTree(huffmanMap, huffmanCodes, cuco, "");
+    int hola = 1;
+}
+
 void stats(H5File file){
 
     vector<DataSet> vec2;
     map<int,int>::iterator it2;
     map<int,int> readsMap;
 
-    datasetList* signalDataSets = new datasetList {0,vec2};
-    Utils::listDatasets("Signal",file,"/", signalDataSets);
-    string* signalDatasetNames = new string[signalDataSets->size];
-    DataSpace** signalDataSpaces = new DataSpace*[signalDataSets->size];
+    //datasetList* signalDataSets = new datasetList {0,vec2};
+    //Utils::listDatasets("Signal",file,"/", signalDataSets);
+    //string* signalDatasetNames = new string[signalDataSets->size];
+    //DataSpace** signalDataSpaces = new DataSpace*[signalDataSets->size];
 
-    int i = 0;
-    for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
+    //int i = 0;
+    /*for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
         signalDatasetNames[i] = (*it).getObjName();
         signalDataSpaces[i] = new DataSpace((*it).getSpace());
 
@@ -82,10 +107,10 @@ void stats(H5File file){
 
         i++;
     }
+*/
 
-
-
-    Huffman::generateTree(readsMap);
+    getHuffmanMapFromFile();
+    //Huffman::generateTree(readsMap);
     ofstream myfile;
     myfile.open ("cuco.txt");
 

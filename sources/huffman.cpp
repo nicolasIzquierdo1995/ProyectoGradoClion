@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
-#include <string>
+
 using namespace huffman;
 using namespace std;
 
@@ -270,4 +270,48 @@ void Huffman::generateTree(std::map<int,int> readMap) {
     int size = readMap.size() ;
 
     HuffmanCodes(readMap, size);
+}
+
+
+bool anyStartsWith(std::vector<string> codes, string code) {
+    for (vector<string>::iterator it = codes.begin(); it != codes.end(); ++it){
+        if (it->rfind(code) == 2){
+            return true;
+        }
+    }
+    return false;
+}
+
+void Huffman::generateNewTree(std::map<string, int> huffmanMap, std::vector<string> codes, MinHeapNode* node, string code) {
+
+    string codeLeft = code + "0";
+    string codeRight = code + "1";
+
+    bool hasLeftBranch = anyStartsWith(codes, codeLeft);
+    bool hasRightBranch = anyStartsWith(codes, codeRight);
+
+    node->freq = 0;
+    if (!hasLeftBranch && !hasRightBranch) {
+        std::map<string, int>::const_iterator pos = huffmanMap.find(": " + code);
+        node->number = pos->second;
+        node->left = NULL;
+        node->right = NULL;
+    }
+    else {
+        node->number = 666;
+        if (hasLeftBranch){
+            node->left = (struct MinHeapNode*)malloc(sizeof(struct MinHeapNode));
+            generateNewTree(huffmanMap, codes, node->left, codeLeft);
+        }
+        else {
+            node->left = NULL;
+        }
+        if (hasRightBranch){
+            node->right = (struct MinHeapNode*)malloc(sizeof(struct MinHeapNode));
+            generateNewTree(huffmanMap, codes, node->right, codeRight);
+        }
+        else {
+            node->right = NULL;
+        }
+    }
 }
