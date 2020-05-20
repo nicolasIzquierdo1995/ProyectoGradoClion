@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <bitset>
 
 
 using namespace std;
@@ -17,12 +18,16 @@ using namespace h5repack;
 using namespace huffman;
 
 map<string,int> globalAttributes;
-vector<bool> treeC[401];
+string treeC[401];
 
 
 Compresser::Compresser(){
 
 }
+
+#if !defined(ARRAY_SIZE)
+#define ARRAY_SIZE(x) (sizeof((x))/sizeof((x)[0]))
+#endif
 
 void saveAtributes(string fileName){
     if(!globalAttributes.empty()){
@@ -238,6 +243,21 @@ uint16_t* getDecompressedSignalBuffer(H5File file, DataSet *signalDataset) {
         return  nullptr;
 }
 
+unsigned char *mapSignalBuffer(int16_t *pInt) {
+    string bitstring;
+    string aux;
+    int size = ARRAY_SIZE(pInt);
+    for(short i = 0; i<size;i++){
+        if(abs(pInt[i])<201) {
+            aux = treeC[pInt[i]];
+        }else{
+            aux = bitset<16>(pInt[i]).to_string();
+        }
+        bitstring.append(aux);
+    }
+    return nullptr;
+}
+
 void unlink(H5File file, string groupName) {
     file.unlink(groupName);
 }
@@ -310,9 +330,9 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
 
         case 3:{
             PredType compressedSignalDataType = Utils::getHuffmanSignalDataType();
-            //ACA SE TIENE QUE SETEAR LOS DATOS NUEVOS PARA ESCRIBIR EL DATASET (compressedSignalBuffers)
             i = 0;
             for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
+                unsigned char* huffmanSignalBuffer = mapSignalBuffer(compressedSignalBuffers[i]);
                 DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&*it);
                 DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, *signalDataSpaces[i], *readsPList));
                 newSignalsDataset->write(compressedSignalBuffers[i], compressedSignalDataType, *signalDataSpaces[i], *signalDataSpaces[i]);
@@ -323,14 +343,10 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
 
     }
 
-
-
-
 }
 
-void compressEventsAndReadsHuff(H5File file,string newFileName){
 
-}
+
 
 void getOnlyReads(H5File file,string newFileName){
     DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
@@ -433,9 +449,7 @@ void readTreeFile() {
         string sPos = line.substr(0,line.find(limit));
         string sVal = line.substr(line.find(limit));
         pos = stoi(sPos);
-        for(auto a : sVal){
-            treeC[pos].push_back(a == '1'); // no se si es null esto
-        }
+        treeC[pos] = sVal;
     }
 }
 
