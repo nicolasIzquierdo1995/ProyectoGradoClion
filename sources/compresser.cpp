@@ -3,11 +3,12 @@
 #include "../headers/utils.hpp"
 #include "../headers/huffman.hpp"
 #include <map>
-#include <string>
+#include <string.h>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <bitset>
+#include <stdio.h>
 
 
 using namespace std;
@@ -47,7 +48,7 @@ void saveAtributes(string fileName){
     }
 }
 
-void getHuffmanMapFromFile() {
+MinHeapNode* getHuffmanTreeFromFile() {
     ifstream inFile;
     string line;
     map<string,int> huffmanMap;
@@ -67,24 +68,24 @@ void getHuffmanMapFromFile() {
         huffmanMap[sVal] = pos;
         huffmanCodes.push_back(sVal);
     }
-    MinHeapNode* cuco = (struct MinHeapNode*)malloc(sizeof(struct MinHeapNode));
-    Huffman::generateNewTree(huffmanMap, huffmanCodes, cuco, "");
-    int hola = 1;
+    MinHeapNode* tree = (struct MinHeapNode*)malloc(sizeof(struct MinHeapNode));
+    Huffman::generateNewTree(huffmanMap, huffmanCodes, tree, "");
+    return tree;
 }
 
-void stats(H5File file){
+void generateHuffmanFromExample(H5File file){
 
     vector<DataSet> vec2;
     map<int,int>::iterator it2;
     map<int,int> readsMap;
 
-    //datasetList* signalDataSets = new datasetList {0,vec2};
-    //Utils::listDatasets("Signal",file,"/", signalDataSets);
-    //string* signalDatasetNames = new string[signalDataSets->size];
-    //DataSpace** signalDataSpaces = new DataSpace*[signalDataSets->size];
+    datasetList* signalDataSets = new datasetList {0,vec2};
+    Utils::listDatasets("Signal",file,"/", signalDataSets);
+    string* signalDatasetNames = new string[signalDataSets->size];
+    DataSpace** signalDataSpaces = new DataSpace*[signalDataSets->size];
 
-    //int i = 0;
-    /*for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
+    int i = 0;
+    for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
         signalDatasetNames[i] = (*it).getObjName();
         signalDataSpaces[i] = new DataSpace((*it).getSpace());
 
@@ -112,10 +113,8 @@ void stats(H5File file){
 
         i++;
     }
-*/
 
-    getHuffmanMapFromFile();
-    //Huffman::generateTree(readsMap);
+    Huffman::generateTree(readsMap);
     ofstream myfile;
     myfile.open ("cuco.txt");
 
@@ -255,7 +254,31 @@ unsigned char *mapSignalBuffer(int16_t *pInt) {
         }
         bitstring.append(aux);
     }
-    return nullptr;
+
+    string unsignedCharString;
+    int position = 0;
+    char currentChar = 0;
+    for (char const &c: bitstring){
+        if (c == '1'){
+            currentChar |= 1 << 7 - position;
+        }
+        if (position < 7){
+            position++;
+        }
+        else{
+            unsignedCharString.push_back(currentChar);
+            currentChar = 0;
+            position = 0;
+        }
+    }
+
+    if (bitstring.length() % 8 != 0){
+        unsignedCharString.push_back(currentChar);
+    }
+
+    unsigned char * charArray = new unsigned char[unsignedCharString.length()]();
+    strcpy((char *) charArray, unsignedCharString.c_str());
+    return charArray;
 }
 
 void unlink(H5File file, string groupName) {
@@ -344,9 +367,6 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
     }
 
 }
-
-
-
 
 void getOnlyReads(H5File file,string newFileName){
     DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
@@ -466,7 +486,7 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
 
 
     if(compressionLevel == 0){
-        stats(file);
+        generateHuffmanFromExample(file);
     } else if(compressionLevel == 1){
         h5repack::repack(file, compressedFileName, "9");
     } else if(compressionLevel == 2 || compressionLevel == 3){
