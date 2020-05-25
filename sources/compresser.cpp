@@ -248,7 +248,7 @@ unsigned char *mapSignalBuffer(int16_t *pInt) {
     int size = ARRAY_SIZE(pInt);
     for(short i = 0; i<size;i++){
         if(abs(pInt[i])<201) {
-            aux = treeC[pInt[i]];
+            aux = treeC[pInt[i] + 200];
         }else{
             aux = bitset<16>(pInt[i]).to_string();
         }
@@ -358,7 +358,7 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
                 unsigned char* huffmanSignalBuffer = mapSignalBuffer(compressedSignalBuffers[i]);
                 DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&*it);
                 DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, *signalDataSpaces[i], *readsPList));
-                newSignalsDataset->write(compressedSignalBuffers[i], compressedSignalDataType, *signalDataSpaces[i], *signalDataSpaces[i]);
+                newSignalsDataset->write(huffmanSignalBuffer, compressedSignalDataType, *signalDataSpaces[i], *signalDataSpaces[i]);
                 i++;
             }
             break;
@@ -469,7 +469,7 @@ void readTreeFile() {
         string sPos = line.substr(0,line.find(limit));
         string sVal = line.substr(line.find(limit));
         pos = stoi(sPos);
-        treeC[pos] = sVal;
+        treeC[pos + 200] = sVal;
     }
 }
 
