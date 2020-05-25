@@ -19,7 +19,7 @@ using namespace h5repack;
 using namespace huffman;
 
 map<string,int> globalAttributes;
-string treeC[401];
+string treeC[301];
 
 
 Compresser::Compresser(){
@@ -247,8 +247,8 @@ unsigned char *mapSignalBuffer(int16_t *pInt) {
     string aux;
     int size = ARRAY_SIZE(pInt);
     for(short i = 0; i<size;i++){
-        if(abs(pInt[i])<201) {
-            aux = treeC[pInt[i] + 200];
+        if(abs(pInt[i])<151) {
+            aux = treeC[pInt[i] + 150];
         }else{
             aux = bitset<16>(pInt[i]).to_string();
         }
@@ -469,7 +469,7 @@ void readTreeFile() {
         string sPos = line.substr(0,line.find(limit));
         string sVal = line.substr(line.find(limit));
         pos = stoi(sPos);
-        treeC[pos + 200] = sVal;
+        treeC[pos + 150] = sVal;
     }
 }
 
