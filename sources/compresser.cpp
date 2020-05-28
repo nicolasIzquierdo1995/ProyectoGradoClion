@@ -240,22 +240,26 @@ uint16_t* getDecompressedSignalBuffer(H5File file, DataSet *signalDataset) {
         return  nullptr;
 }
 
-unsigned char *mapSignalBuffer(int16_t *pInt) {
+unsigned char *mapSignalBuffer(vector<int16_t> *pInt) {
     string bitstring;
     string aux;
-    int size = ARRAY_SIZE(pInt);
-    for(short i = 0; i<size;i++){
-        if(abs(pInt[i])<151) {
-            aux = treeC[pInt[i] + 150];
+
+    for (vector<int16_t>::iterator it = pInt->begin(); it != pInt->end(); ++it){
+        if(abs(*it)<151) {
+            aux = treeC[(*it) + 150];
         }else{
-            aux = bitset<16>(pInt[i]).to_string();
+            aux = bitset<16>((*it)).to_string();
         }
         bitstring.append(aux);
     }
 
-    string unsignedCharString;
     int position = 0;
-    char currentChar = 0;
+    unsigned char currentChar = 0;
+
+    int count = (int)bitstring.length() / 8 +  (bitstring.length() % 8 != 0 ? 1 : 0);
+    unsigned char * charArray = new unsigned char[count]();
+
+    int i = 0;
     for (char const &c: bitstring){
         if (c == '1'){
             currentChar |= 1 << 7 - position;
@@ -264,11 +268,15 @@ unsigned char *mapSignalBuffer(int16_t *pInt) {
             position++;
         }
         else{
-            unsignedCharString.push_back(currentChar);
+            charArray[i] = currentChar;
             currentChar = 0;
             position = 0;
+            i++;
         }
     }
+
+    return charArray;
+}
 
     if (bitstring.length() % 8 != 0){
         unsignedCharString.push_back(currentChar);
