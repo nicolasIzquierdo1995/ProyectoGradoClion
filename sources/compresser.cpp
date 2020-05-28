@@ -2,6 +2,7 @@
 #include "../headers/repack.hpp"
 #include "../headers/utils.hpp"
 #include "../headers/huffman.hpp"
+#include "h5Array.cpp"
 #include <map>
 #include <string.h>
 #include <algorithm>
@@ -25,10 +26,6 @@ string treeC[301];
 Compresser::Compresser(){
 
 }
-
-#if !defined(ARRAY_SIZE)
-#define ARRAY_SIZE(x) (sizeof((x))/sizeof((x)[0]))
-#endif
 
 void saveAtributes(string fileName){
     if(!globalAttributes.empty()){
@@ -124,7 +121,7 @@ void generateHuffmanFromExample(H5File file){
     myfile.close();
 }
 
-compressedEventData* getCompressedEventsBuffer(H5File file, DataSet *eventsDataset) {
+h5Array<compressedEventData> getCompressedEventsBuffer(H5File file, DataSet *eventsDataset) {
 
     CompType originalEventDT = Utils::getEventDataType();
 
@@ -151,7 +148,8 @@ compressedEventData* getCompressedEventsBuffer(H5File file, DataSet *eventsDatas
     eventBuffer[eventsCount-1].stdv = originalEventsBuffer[eventsCount-1].stdv;
     eventBuffer[eventsCount-1].mean = originalEventsBuffer[eventsCount-1].mean;
 
-    return eventBuffer;
+    h5Array<compressedEventData> ret = h5Array<compressedEventData>(eventBuffer,eventsCount);
+    return ret;
 }
 
 eventData* getDecompressedEventsBuffer(H5File file, DataSet *compressedEventsDataset) {
