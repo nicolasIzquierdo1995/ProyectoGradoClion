@@ -240,7 +240,7 @@ h5Array<uint16_t> getDecompressedSignalBuffer(H5File file, DataSet *signalDatase
         exit(1);
 }
 
-unsigned char *mapSignalBuffer(h5Array<int16_t> pInt) {
+h5Array<unsigned char> mapSignalBuffer(h5Array<int16_t> pInt) {
     string bitstring;
     string aux;
 
@@ -275,7 +275,8 @@ unsigned char *mapSignalBuffer(h5Array<int16_t> pInt) {
         }
     }
 
-    return charArray;
+    h5Array<unsigned char> ret = h5Array<unsigned char>(charArray,count);
+    return ret;
 }
 
 void unlink(H5File file, string groupName) {
@@ -352,10 +353,13 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
             PredType compressedSignalDataType = Utils::getHuffmanSignalDataType();
             i = 0;
             for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
-                unsigned char* huffmanSignalBuffer = mapSignalBuffer(compressedSignalBuffers[i]);
+                h5Array<unsigned char> huffmanSignalBuffer = mapSignalBuffer(compressedSignalBuffers[i]);
                 DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&*it);
-                DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, *signalDataSpaces[i], *readsPList));
-                newSignalsDataset->write(huffmanSignalBuffer, compressedSignalDataType, *signalDataSpaces[i], *signalDataSpaces[i]);
+
+                hsize_t current_dims[1] = { (hsize_t)huffmanSignalBuffer.size };
+                DataSpace cuco = DataSpace(1, current_dims);
+                DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, cuco, *readsPList));
+                newSignalsDataset->write(huffmanSignalBuffer.ptr, compressedSignalDataType, cuco, cuco);
                 i++;
             }
             break;
