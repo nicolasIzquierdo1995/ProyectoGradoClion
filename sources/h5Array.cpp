@@ -3,14 +3,15 @@ using namespace  std;
 
 template <typename T>
 class h5Array{
-private:
+  
+public:
     T* ptr;
     int size;
-
-public:
+    h5Array(){};
     h5Array(T arr[], int s);
     void print();
 };
+
 
 template <typename T>
 h5Array<T>::h5Array(T *arr, int s) {
