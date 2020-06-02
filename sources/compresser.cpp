@@ -464,7 +464,7 @@ void readTreeFile() {
     }
     while(getline(inFile,line)){
         string sPos = line.substr(0,line.find(limit));
-        string sVal = line.substr(line.find(limit));
+        string sVal = line.substr(line.find(limit) + 2);
         pos = stoi(sPos);
         treeC[pos + 150] = sVal;
     }
