@@ -240,15 +240,15 @@ h5Array<uint16_t> getDecompressedSignalBuffer(H5File file, DataSet *signalDatase
         exit(1);
 }
 
-unsigned char *mapSignalBuffer(vector<int16_t> *pInt) {
+unsigned char *mapSignalBuffer(h5Array<int16_t> pInt) {
     string bitstring;
     string aux;
 
-    for (vector<int16_t>::iterator it = pInt->begin(); it != pInt->end(); ++it){
-        if(abs(*it)<151) {
-            aux = treeC[(*it) + 150];
+    for (int j = 0; j < pInt.size; j++){
+        if(abs(pInt.ptr[j])<151) {
+            aux = treeC[pInt.ptr[j] + 150];
         }else{
-            aux = bitset<16>((*it)).to_string();
+            aux = bitset<16>(pInt.ptr[j]).to_string();
         }
         bitstring.append(aux);
     }
