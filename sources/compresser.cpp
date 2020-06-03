@@ -357,9 +357,9 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
                 DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&*it);
 
 
-                hsize_t chunk_dims[1] = { (hsize_t)huffmanSignalBuffer.size/100 };
+                hsize_t chunk_dims[1] = { (hsize_t)huffmanSignalBuffer.size };
                 DSetCreatPropList* creatPropList = new DSetCreatPropList;
-                creatPropList->setDeflate(9);
+                creatPropList->setSzip(H5_SZIP_NN_OPTION_MASK,32);
                 creatPropList->setChunk(1, chunk_dims);
 
                 hsize_t current_dims[1] = { (hsize_t)huffmanSignalBuffer.size };
