@@ -356,10 +356,16 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
                 h5Array<unsigned char> huffmanSignalBuffer = mapSignalBuffer(compressedSignalBuffers[i]);
                 DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&*it);
 
+
+                hsize_t chunk_dims[1] = { (hsize_t)huffmanSignalBuffer.size/100 };
+                DSetCreatPropList* creatPropList = new DSetCreatPropList;
+                creatPropList->setDeflate(9);
+                creatPropList->setChunk(1, chunk_dims);
+
                 hsize_t current_dims[1] = { (hsize_t)huffmanSignalBuffer.size };
-                DataSpace cuco = DataSpace(1, current_dims);
-                DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, cuco, *readsPList));
-                newSignalsDataset->write(huffmanSignalBuffer.ptr, compressedSignalDataType, cuco, cuco);
+                DataSpace * cuco = new DataSpace(1, current_dims);
+                DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, *cuco, *creatPropList));
+                newSignalsDataset->write(huffmanSignalBuffer.ptr, compressedSignalDataType, *cuco, *cuco);
                 i++;
             }
             break;
