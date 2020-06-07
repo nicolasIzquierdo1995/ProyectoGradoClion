@@ -227,3 +227,14 @@ void Utils::listDatasets(string name,H5File file,string path,datasetList* result
 }
 
 
+int Utils::stringToInt(string bitString) {
+    int ret = 0;
+    for (int position = 0; position < 16; position++) {
+        if (bitString.at(position) == '1') {
+            ret |= 1 << 15 - position;
+        }
+    }
+    return ret;
+}
+
+
