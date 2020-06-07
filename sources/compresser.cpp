@@ -70,6 +70,11 @@ MinHeapNode* getHuffmanTreeFromFile() {
     return tree;
 }
 
+h5Array<int> mapSignalBufferD(h5Array<unsigned char> pChar){
+    MinHeapNode* huffmanTree = getHuffmanTreeFromFile();
+    //CODIGO A COMPLETAR
+}
+
 void generateHuffmanFromExample(H5File file){
 
     vector<DataSet> vec2;
@@ -218,7 +223,7 @@ h5Array<int16_t> getCompressedSignalBuffer(H5File file, DataSet *signalDataset) 
     return ret;
 }
 
-h5Array<uint16_t> getDecompressedSignalBuffer(H5File file, DataSet *signalDataset) {
+h5Array<uint16_t> getDecompressedSignalBuffer(H5File file, DataSet *signalDataset,int compressionLevel) {
     Group root = file.openGroup("/");
     string firstReadAttributeName = signalDataset->getObjName() + "_firstRead";
     if(root.attrExists(firstReadAttributeName)) {
@@ -233,22 +238,39 @@ h5Array<uint16_t> getDecompressedSignalBuffer(H5File file, DataSet *signalDatase
         hsize_t signalDims[signalDataSpace->getSimpleExtentNdims()];
         signalDataSpace->getSimpleExtentDims(signalDims);
         int signalsCount = (int)(signalDims[0]);
-        int* signalsBuffer = new int[signalsCount];
+        int realCount;
+        int* signalsBuffer;
 
-        uint16_t* newSignalsBuffer = new uint16_t[signalsCount];
-        signalDataset->read(signalsBuffer,PredType::NATIVE_INT,*signalDataSpace,*signalDataSpace);
 
+        switch(compressionLevel){
+            case 2: {
+                signalsBuffer = new int[signalsCount];
+                signalDataset->read(signalsBuffer,PredType::NATIVE_INT,*signalDataSpace,*signalDataSpace);
+                realCount = signalsCount;
+                break;
+            }
+            case 3: {
+                unsigned char* huffmanBuffer = new unsigned char[signalsCount];
+                signalDataset->read(huffmanBuffer,Utils::getHuffmanSignalDataType(),*signalDataSpace,*signalDataSpace);
+                h5Array<int> cuco = mapSignalBufferD(h5Array<unsigned char>(huffmanBuffer,signalsCount));
+                signalsBuffer = cuco.ptr;
+                break;
+            }
+            default: exit(1);
+        }
+
+        uint16_t* newSignalsBuffer = new uint16_t[realCount];
         newSignalsBuffer[0] = firstRead;
-        for(int i = 1; i< signalsCount; i++){
+        for(int i = 1; i< realCount; i++){
             newSignalsBuffer[i] = newSignalsBuffer[i-1] + signalsBuffer[i];
         }
-        h5Array<uint16_t> ret = h5Array<uint16_t>(newSignalsBuffer,signalsCount);
+        h5Array<uint16_t> ret = h5Array<uint16_t>(newSignalsBuffer,realCount);
         return ret;
     }else
         exit(1);
 }
 
-h5Array<int16_t> mapSignalBuffer(h5Array<int16_t> pInt) {
+h5Array<unsigned char> mapSignalBufferC(h5Array<int16_t> pInt) {
     string bitstring;
     string aux;
 
@@ -286,6 +308,8 @@ h5Array<int16_t> mapSignalBuffer(h5Array<int16_t> pInt) {
     h5Array<int16_t> ret = h5Array<int16_t>(intArray,count);
     return ret;
 }
+
+
 
 void unlink(H5File file, string groupName) {
     file.unlink(groupName);
@@ -361,7 +385,7 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
             PredType compressedSignalDataType = Utils::getHuffmanSignalDataType();
             i = 0;
             for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
-                h5Array<int16_t> huffmanSignalBuffer = mapSignalBuffer(compressedSignalBuffers[i]);
+                h5Array<unsigned char> huffmanSignalBuffer = mapSignalBufferC(compressedSignalBuffers[i]);
                 DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&*it);
 
 
@@ -378,7 +402,7 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
             }
             break;
         }
-
+        default: exit(1);
     }
 
 }
@@ -402,7 +426,7 @@ void getOnlyReads(H5File file,string newFileName){
     newSignalsDataset->write(newSignalsBuffer, signalDataType, *signalsDataSpace, *signalsDataSpace);
 }
 
-void deCompressEventsAndReads(H5File file,string newFileName){
+void deCompressEventsAndReads(H5File file,string newFileName,int compressionLevel){
     vector<DataSet> eVec;
     vector<DataSet> sVec;
 
@@ -434,7 +458,7 @@ void deCompressEventsAndReads(H5File file,string newFileName){
     for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
         signalDatasetNames[i] = (*it).getObjName();
         signalDataSpaces[i] = new DataSpace((*it).getSpace());
-        decompressedSignalBuffers[i] = getDecompressedSignalBuffer(file, &*it);
+        decompressedSignalBuffers[i] = getDecompressedSignalBuffer(file, &*it,compressionLevel);
         unlink(file, (*it).getObjName().c_str());
         i++;
     }
@@ -527,8 +551,8 @@ void Compresser::DeCompressFile(H5File file, int compressionLevel){
     H5Adelete(root.getId(),attrName.c_str());
     if(compressionLevel == 1){
         h5repack::repack(file, deCompressedFileName, "3");
-    } else if(compressionLevel == 2){
-        deCompressEventsAndReads(file,deCompressedFileName);
+    } else if(compressionLevel == 2 || compressionLevel == 3){
+        deCompressEventsAndReads(file,deCompressedFileName,compressionLevel);
     }
 
 
