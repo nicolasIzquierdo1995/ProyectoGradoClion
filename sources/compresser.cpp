@@ -96,12 +96,20 @@ void generateHuffmanFromExample(H5File file){
         int firstSignal = signalsBuffer[0];
         for(int j = 1; j< signalsCount; j++){
             int diff = signalsBuffer[j] - firstSignal;
-            if (diff <= 150 && diff >= -150){
+            if (diff <= 200 && diff >= -200){
                 if (readsMap.find(diff) == readsMap.end()){
                     readsMap[diff] = 1;
                 }
                 else {
                     readsMap[diff] = readsMap[diff] + 1;
+                }
+            }
+            else {
+                if (readsMap.find(201) == readsMap.end()){
+                    readsMap[201] = 1;
+                }
+                else {
+                    readsMap[201] = readsMap[201] + 2;
                 }
             }
 
