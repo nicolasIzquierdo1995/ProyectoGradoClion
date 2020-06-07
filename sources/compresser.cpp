@@ -93,8 +93,11 @@ h5Array<int> mapSignalBufferD(h5Array<int16_t> pChar){
             }
             if(aux_tree->number != 666){
                 found = true;
-                int leaf;
-                //NICOLAS PASA AUX_STRING A ENTERO
+                int leaf = aux_tree->number;
+                if(leaf = 201){
+                    leaf = Utils::stringToInt(bitstring.substr(i+1,i+17));
+                    i = i+16;
+                }
                 vec.push_back(leaf);
             }
             i++;
