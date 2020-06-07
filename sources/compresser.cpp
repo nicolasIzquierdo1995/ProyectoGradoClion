@@ -72,7 +72,34 @@ MinHeapNode* getHuffmanTreeFromFile() {
 
 h5Array<int> mapSignalBufferD(h5Array<int16_t> pChar){
     MinHeapNode* huffmanTree = getHuffmanTreeFromFile();
-    
+    string bitstring;
+    for(int i = 0;i<pChar.size;i++){
+        string aux = bitset<16>(pChar.ptr[i]).to_string();
+        bitstring.append(aux);
+    }
+    int i = 0;
+    vector<int> vec;
+    while(i<bitstring.size()){
+        MinHeapNode* aux_tree = huffmanTree;
+        string aux_string = "";
+        bool found = false;
+        while(!found && i<bitstring.size()){
+            char c = bitstring.at(i);
+            aux_string.append(c + "");
+            if(c = '1'){
+                aux_tree = aux_tree->right;
+            }else{
+                aux_tree = aux_tree->left;
+            }
+            if(aux_tree->number != 666){
+                found = true;
+                int leaf;
+                //NICOLAS PASA AUX_STRING A ENTERO
+                vec.push_back(leaf);
+            }
+            i++;
+        }
+    }
 }
 
 void generateHuffmanFromExample(H5File file){
