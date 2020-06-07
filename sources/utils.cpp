@@ -82,7 +82,7 @@ CompType Utils::getCompressedEventDataType() {
 }
 
 PredType Utils::getHuffmanSignalDataType(){
-    return PredType::STD_B8LE;
+    return PredType::NATIVE_INT16;
 }
 
 PredType Utils::getCompressedSignalDataType(){
