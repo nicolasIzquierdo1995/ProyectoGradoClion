@@ -103,6 +103,9 @@ h5Array<int> mapSignalBufferD(h5Array<int16_t> pChar){
             i++;
         }
     }
+
+    h5Array<int> ret = h5Array<int>(&vec[0],vec.size());
+    return ret;
 }
 
 void generateHuffmanFromExample(H5File file){
@@ -284,6 +287,7 @@ h5Array<uint16_t> getDecompressedSignalBuffer(H5File file, DataSet *signalDatase
                 signalDataset->read(huffmanBuffer,Utils::getHuffmanSignalDataType(),*signalDataSpace,*signalDataSpace);
                 h5Array<int> cuco = mapSignalBufferD(h5Array<int16_t>(huffmanBuffer,signalsCount));
                 signalsBuffer = cuco.ptr;
+                realCount = cuco.size;
                 break;
             }
             default: exit(1);
@@ -338,8 +342,6 @@ h5Array<int16_t> mapSignalBufferC(h5Array<int16_t> pInt) {
     h5Array<int16_t> ret = h5Array<int16_t>(intArray,count);
     return ret;
 }
-
-
 
 void unlink(H5File file, string groupName) {
     file.unlink(groupName);
@@ -418,17 +420,15 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
                 h5Array<int16_t> huffmanSignalBuffer = mapSignalBufferC(compressedSignalBuffers[i]);
                 DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&*it);
 
-
                 hsize_t chunk_dims[1] = { (hsize_t)huffmanSignalBuffer.size };
                 DSetCreatPropList* creatPropList = new DSetCreatPropList;
-                creatPropList->setSzip(H5_SZIP_NN_OPTION_MASK,32);
+                creatPropList->setDeflate(9);
                 creatPropList->setChunk(1, chunk_dims);
 
-                hsize_t current_dims[1] = { (hsize_t)huffmanSignalBuffer.size };
-                DataSpace * cuco = new DataSpace(1, current_dims);
+                DataSpace * cuco = new DataSpace(1, chunk_dims, chunk_dims);
                 DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, *cuco, *creatPropList));
                 newSignalsDataset->write(huffmanSignalBuffer.ptr, compressedSignalDataType, *cuco, *cuco);
-                i++;
+                i++; 
             }
             break;
         }
