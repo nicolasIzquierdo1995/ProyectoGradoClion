@@ -339,6 +339,10 @@ h5Array<int16_t> mapSignalBufferC(h5Array<int16_t> pInt) {
         }
     }
 
+    if (bitstring.length() % 16 != 0){
+        intArray[i] = currentInt;
+    }
+
     h5Array<int16_t> ret = h5Array<int16_t>(intArray,count);
     return ret;
 }
