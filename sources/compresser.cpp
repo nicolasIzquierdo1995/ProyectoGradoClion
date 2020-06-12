@@ -86,7 +86,7 @@ h5Array<int> mapSignalBufferD(h5Array<int16_t> pChar){
         while(!found && i<bitstring.size()){
             char c = bitstring.at(i);
             aux_string.append(c + "");
-            if(c = '1'){
+            if(c == '1'){
                 aux_tree = aux_tree->right;
             }else{
                 aux_tree = aux_tree->left;
@@ -94,7 +94,7 @@ h5Array<int> mapSignalBufferD(h5Array<int16_t> pChar){
             if(aux_tree->number != 666){
                 found = true;
                 int leaf = aux_tree->number;
-                if(leaf = 201){
+                if(leaf == 201){
                     leaf = Utils::stringToInt(bitstring.substr(i+1,i+17));
                     i = i+16;
                 }
@@ -487,8 +487,10 @@ void deCompressEventsAndReads(H5File file,string newFileName,int compressionLeve
     i = 0;
     for (vector<DataSet>::iterator it = signalDataSets->ds.begin(); it != signalDataSets->ds.end(); ++it){
         signalDatasetNames[i] = (*it).getObjName();
-        signalDataSpaces[i] = new DataSpace((*it).getSpace());
         decompressedSignalBuffers[i] = getDecompressedSignalBuffer(file, &*it,compressionLevel);
+        signalDataSpaces[i] = new DataSpace((*it).getSpace());
+        hsize_t chunk_dims[1] = {(hsize_t) decompressedSignalBuffers[i].size};
+        signalDataSpaces[i]->setExtentSimple(1,chunk_dims);
         unlink(file, (*it).getObjName().c_str());
         i++;
     }
