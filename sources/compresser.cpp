@@ -358,6 +358,30 @@ datasetList* getDataSetList(H5File file,string name){
     return ret;
 }
 
+
+void printChunks(H5File file){
+    datasetList* signalDataSets = getDataSetList(file,"Signal");
+    for (int i = 0; i < signalDataSets->size; i++){
+        DataSet ds = signalDataSets->ds.at(i);
+        DSetCreatPropList propertyList = ds.getCreatePlist();
+        DataSpace space = ds.getSpace();
+        hsize_t ndims[1];
+        space.getSimpleExtentDims(ndims);
+        hsize_t chunk_dims[1];
+        propertyList.getChunk(1, chunk_dims);
+        unsigned int flags;
+        size_t cd_nelmts = 1;
+        unsigned int* cd_values = new unsigned  int[1];
+        size_t namelen;
+        char* name = new char[20];
+        unsigned int filter_config;
+        int numFiltros = propertyList.getNfilters();
+        propertyList.getFilter(0, flags, cd_nelmts, cd_values, namelen, name, filter_config);
+        cout << "dataset: " << ds.getObjName() << " Numero de filtros: " << numFiltros << " Cantidad de elementos: " << ndims[0] << " Chunks:  " << chunk_dims[0] << endl << " Deflate: " <<  name;
+    }
+
+}
+
 void compressEventsAndReads(H5File file,string newFileName,int compLvl){
 
     datasetList* eventDataSets = getDataSetList(file,"Events");
@@ -561,7 +585,8 @@ void Compresser::CompressFile(H5File file, int compressionLevel){
 
 
     if(compressionLevel == 0){
-        generateHuffmanFromExample(file);
+        printChunks(file);
+        //generateHuffmanFromExample(file);
     } else if(compressionLevel == 1){
         h5repack::repack(file, compressedFileName, "9");
     } else if(compressionLevel == 2 || compressionLevel == 3){
