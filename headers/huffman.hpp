@@ -40,7 +40,7 @@ namespace huffman {
     class Huffman {
     public:
         static void generateTree(std::map<int,int> readMap);
-        static void generateNewTree(std::map<string, int> huffmanMap, std::vector<string> codes, MinHeapNode* node, string code);
+        static void generateNewTree(std::map<string, int> huffmanMap, std::vector<string> codes, MinHeapNode* node, string code = "");
     };
 }
 

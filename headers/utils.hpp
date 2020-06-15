@@ -7,11 +7,6 @@ using namespace H5;
 using namespace std;
 namespace utils{
 
-    typedef struct datasetList{
-        int size;
-        vector<DataSet> ds;
-    }datasetList;
-
     typedef struct eventData {
         long start;
         long length;
@@ -49,7 +44,7 @@ namespace utils{
         static PredType getDecompressedSignalDataType();
         static void copyFile(string originalName, string copyName);
         static void unlinkLogs(H5File file,string path);
-        static void listDatasets(string name,H5File file,string path,datasetList* result);
+        static void listDatasets(string name,H5File file,string path,vector<DataSet>* dataSets);
         static int stringToInt(string bitString);
     };
 }

@@ -9,10 +9,8 @@ using namespace std;
 namespace inputOutput{
   typedef struct Arguments {
     H5File file;
-    bool multiThreading;
     int compressionLevel;
     bool isOk;
-    bool isFolder;
     bool compress;
     string errorMessage;
     string fileName;

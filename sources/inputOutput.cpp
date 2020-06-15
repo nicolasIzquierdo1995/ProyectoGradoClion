@@ -1,8 +1,5 @@
-
 #include "../headers/inputOutput.hpp"
 #include <iostream>
-#include <string.h>
-#include <fstream>
 #include <sys/stat.h>
 #include "../headers/utils.hpp"
 using namespace std;
@@ -21,11 +18,6 @@ static bool VerifyArguments(int argc, char *argv[]){
             return false;
         }
     }
-
-    //const char* multiThreading = argv[2];
-    // if (strncmp(multiThreading, "true", 4) != 0 && strncmp(multiThreading, "false", 4) != 0 ) {
-    //      return false;
-    //    }
 
     return true;
 }
@@ -48,12 +40,9 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     Arguments * arg = new Arguments();
     arg->isOk = true;
     arg->compress = argc == 3;
-    //arg->multiThreading = strncmp(argv[2],"false",4);
 
     struct stat path_stat;
     stat(argv[1], &path_stat);
-    //bool isDirectory = S_ISDIR(path_stat.st_mode);
-    bool isDirectory = false;
 
     string fileName = argv[1];
     Utils::replaceString(fileName, ".fast5", "_copy.fast5");
@@ -62,7 +51,6 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     H5File file(fileName, H5F_ACC_RDWR);
     arg->file = file;
     arg->fileName = fileName;
-    arg->isFolder = false;
 
 
     if (arg->compress)
