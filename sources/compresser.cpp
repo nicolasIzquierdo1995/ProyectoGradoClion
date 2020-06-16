@@ -63,7 +63,7 @@ MinHeapNode* getHuffmanTreeFromFile(string fileName) {
     return tree;
 }
 
-h5Array<int> mapSignalBufferD(h5Array<int16_t> pChar){
+vector<int> mapSignalBufferD(h5Array<int16_t> pChar){
     if (huffmanTree == NULL){
         huffmanTree = getHuffmanTreeFromFile("ganamo.txt");
     }
@@ -99,8 +99,7 @@ h5Array<int> mapSignalBufferD(h5Array<int16_t> pChar){
         }
     }
 
-    h5Array<int> ret = h5Array<int>(&vec[0],vec.size());
-    return ret;
+    return vec;
 }
 
 void generateHuffmanFromExample(H5File file){
@@ -266,22 +265,23 @@ h5Array<uint16_t> getDecompressedSignalBuffer(H5File file, DataSet *signalDatase
         signalDataSpace->getSimpleExtentDims(signalDims);
         int signalsCount = (int)(signalDims[0]);
         int realCount;
-        int* signalsBuffer;
+        vector<int> signalsBuffer;
 
 
         switch(compressionLevel){
             case 2: {
-                signalsBuffer = new int[signalsCount];
-                signalDataset->read(signalsBuffer,PredType::NATIVE_INT,*signalDataSpace,*signalDataSpace);
+                int* signalsBufferAux = new int[signalsCount];
+                signalDataset->read(signalsBufferAux,PredType::NATIVE_INT,*signalDataSpace,*signalDataSpace);
                 realCount = signalsCount;
+                vector<int> cuco(signalsBufferAux, signalsBufferAux + signalsCount);
+                signalsBuffer = cuco;
                 break;
             }
-            case 3: {
+            case 3:{
                 int16_t* huffmanBuffer = new int16_t[signalsCount];
                 signalDataset->read(huffmanBuffer,Utils::getHuffmanSignalDataType(),*signalDataSpace,*signalDataSpace);
-                h5Array<int> cuco = mapSignalBufferD(h5Array<int16_t>(huffmanBuffer,signalsCount));
-                signalsBuffer = cuco.ptr;
-                realCount = cuco.size;
+                signalsBuffer = mapSignalBufferD(h5Array<int16_t>(huffmanBuffer,signalsCount));
+                realCount = signalsBuffer.size();
                 break;
             }
             default: exit(1);

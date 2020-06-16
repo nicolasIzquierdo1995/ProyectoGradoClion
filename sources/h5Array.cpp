@@ -15,11 +15,8 @@ public:
 
 template <typename T>
 h5Array<T>::h5Array(T *arr, int s) {
-    ptr = new T[s];
+    ptr = arr;
     size = s;
-    for (int i = 0; i < size; i++) {
-        ptr[i] = arr[i];
-    }
 }
 
 template <typename T>
