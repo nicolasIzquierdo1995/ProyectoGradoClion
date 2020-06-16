@@ -90,7 +90,7 @@ PredType Utils::getCompressedSignalDataType(){
 }
 
 PredType Utils::getDecompressedSignalDataType(){
-    return PredType::NATIVE_UINT16;
+    return PredType::NATIVE_INT16;
 }
 
 bool Utils::replaceString(std::string& str, const std::string& from, const std::string& to) {
@@ -216,17 +216,11 @@ void Utils::listDatasets(string name,H5File file,string path,vector<DataSet>* da
     hsize_t objCount =  group.getNumObjs();
     for (int i = 0; i < objCount; i++){
         string objectName = group.getObjnameByIdx(i);
-        if (objectName.find("read", 0) == 0 ) // || objectName == "Signal" || objectName == "Raw"){
+        if (objectName.find("read", 0) == 0 ){
             dataSets->push_back(file.openDataSet(path+objectName + "/Raw/Signal"));
-            /*
-            if (group.getObjTypeByIdx(i) == H5G_DATASET && objectName.find(name) == 0 ){
-                dataSets->push_back(file.openDataSet(path+objectName));
-                break;
-            }else if(group.getObjTypeByIdx(i) == H5G_GROUP){
-                listDatasets(name,file,path + objectName + "/",dataSets);
-            }
-             */
-        //}
+        }else if(objectName.find("Raw",0) == 0){
+            dataSets->push_back(file.openDataSet(path+objectName + "/Signal"));
+        }
     }
 }
 
