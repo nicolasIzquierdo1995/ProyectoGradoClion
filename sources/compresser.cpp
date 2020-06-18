@@ -306,7 +306,7 @@ h5Array<int16_t> mapSignalBufferC(h5Array<int16_t> pInt) {
         if(abs(pInt.ptr[j])<201) {
             aux = treeC[pInt.ptr[j] + 200];
         }else{
-            aux = treeC[402] + bitset<16>(pInt.ptr[j]).to_string();
+            aux = treeC[401] + bitset<16>(pInt.ptr[j]).to_string();
         }
         bitstring.append(aux);
     }
