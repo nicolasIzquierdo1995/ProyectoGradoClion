@@ -219,7 +219,7 @@ void Utils::listDatasets(string name,H5File file,string path,vector<DataSet>* da
         if (objectName.find("read", 0) == 0 ){
             dataSets->push_back(file.openDataSet(path+objectName + "/Raw/Signal"));
         }else if(objectName.find("Raw",0) == 0){
-            dataSets->push_back(file.openDataSet(path+objectName + "/Signal"));
+            dataSets->push_back(file.openDataSet(path+objectName + "/Reads/Read_627/Signal"));
         }
     }
 }
