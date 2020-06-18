@@ -88,12 +88,14 @@ vector<int> mapSignalBufferD(h5Array<int16_t> pChar){
             }
             if(aux_tree->number != 666){
                 found = true;
-                int leaf = aux_tree->number;
-                if(leaf == 201){
-                    leaf = Utils::stringToInt(bitstring.substr(i+1,i+17));
-                    i = i+16;
-                }
-                vec.push_back(leaf);
+                    int leaf = aux_tree->number;
+                    if (leaf != 201 || i + 1 < bitstring.size()) {
+                        if (leaf == 201) {
+                            leaf = Utils::stringToInt(bitstring.substr(i + 1, 16));
+                            i = i + 16;
+                        }
+                        vec.push_back(leaf);
+                    }
             }
             i++;
         }
@@ -306,10 +308,13 @@ h5Array<int16_t> mapSignalBufferC(h5Array<int16_t> pInt) {
         if(abs(pInt.ptr[j])<201) {
             aux = treeC[pInt.ptr[j] + 200];
         }else{
-            aux = treeC[402] + bitset<16>(pInt.ptr[j]).to_string();
+            string cuco = bitset<16>(pInt.ptr[j]).to_string();
+            aux = treeC[401] + bitset<16>(pInt.ptr[j]).to_string();
         }
         bitstring.append(aux);
     }
+
+    bitstring.append(treeC[401]);
 
     int position = 0;
     int16_t currentInt = 0;
