@@ -89,11 +89,12 @@ vector<int> mapSignalBufferD(h5Array<int16_t> pChar){
             if(aux_tree->number != 666){
                 found = true;
                     int leaf = aux_tree->number;
-                    if (leaf != 201 || i + 1 < bitstring.size()) {
-                        if (leaf == 201) {
-                            leaf = Utils::stringToInt(bitstring.substr(i + 1, 16));
-                            i = i + 16;
-                        }
+                    if (leaf == 201 && i+17 < bitstring.size()) {
+                        leaf = Utils::stringToInt(bitstring.substr(i + 1, 16));
+                        i = i + 16;
+                        vec.push_back(leaf);
+                    }
+                    else if (leaf != 201) {
                         vec.push_back(leaf);
                     }
             }
