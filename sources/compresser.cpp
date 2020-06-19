@@ -97,6 +97,9 @@ vector<int> mapSignalBufferD(h5Array<int16_t> pChar){
                     else if (leaf != 201) {
                         vec.push_back(leaf);
                     }
+                    else {
+                        i = i + 64;
+                    }
             }
             i++;
         }
@@ -522,7 +525,8 @@ void deCompressEventsAndReads(H5File file,string newFileName,int compressionLeve
         decompressedSignalBuffers[i] = getDecompressedSignalBuffer(file, &curentDataSet,compressionLevel);
         signalDataSpaces[i] = new DataSpace(curentDataSet.getSpace());
         hsize_t chunk_dims[1] = {(hsize_t) decompressedSignalBuffers[i].size};
-        signalDataSpaces[i]->setExtentSimple(1,chunk_dims);
+        hsize_t chunk_dimsUnlimited[1] = { H5S_UNLIMITED };
+        signalDataSpaces[i]->setExtentSimple(1,chunk_dims, chunk_dimsUnlimited);
         unlink(file, curentDataSet.getObjName().c_str());
     }
 
