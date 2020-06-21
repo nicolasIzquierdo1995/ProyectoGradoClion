@@ -1,8 +1,6 @@
 #include "../headers/huffman.hpp"
 #include <iostream>
 #include <cstdlib>
-#include <iostream>
-#include <fstream>
 
 using namespace huffman;
 using namespace std;

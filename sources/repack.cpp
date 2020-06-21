@@ -2180,7 +2180,7 @@ void h5repack_init (pack_opt_t *options, int verbose)
     options_table_init(&(options->op_tbl));
 }
 
-int h5repack::repack(H5File inputFile, string outputFile, string gzipCompression)
+int h5repack::repack(H5File* inputFile, string outputFile, string gzipCompression)
 {
     pack_opt_t    options;
     h5repack_init(&options,0);
@@ -2191,7 +2191,7 @@ int h5repack::repack(H5File inputFile, string outputFile, string gzipCompression
     compression = compression.append(gzipCompression);
 
     h5repack_addfilter( compression.c_str(), &options);
-    copy_objects(inputFile,outputFile.c_str(), &options);
+    copy_objects(*inputFile,outputFile.c_str(), &options);
 
     h5repack_end(&options);
     return 0;

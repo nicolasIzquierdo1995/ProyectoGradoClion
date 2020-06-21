@@ -21,30 +21,20 @@ namespace utils{
         float stdv;
     } compressedEventData;
 
-    typedef struct StdvAndMean {
-        float stdv;
-        float mean;
-    } StdvAndMean;
-
     class Utils {
     public:
-        static DataSet* GetDataset(H5File file, string path, string dataSetGrandParentName, string dataSetName);
-        static int GetFilesCount(string path);
-        static string* GetFileArray(string path, int fileCount);
-        static bool IsInt(DataSet ds);
+        static DataSet* GetDataset(H5File* file, string path, string dataSetGrandParentName, string dataSetName);
         static CompType getEventDataType();
         static CompType getCompressedEventDataType();
         static bool replaceString(string& str, const string& from, const string& to);
         static DSetCreatPropList* createCompressedSetCreatPropList(DataSet* dSet);
         static DSetCreatPropList *createDecompressedSetCreatPropList(int size);
-        static PredType getIntType(int* buffer, int count);
-        static StdvAndMean getStdvAndMean(int* buffer, int start, int length);
         static PredType getHuffmanSignalDataType();
         static PredType getCompressedSignalDataType();
         static PredType getDecompressedSignalDataType();
         static void copyFile(string originalName, string copyName);
-        static void unlinkLogs(H5File file,string path);
-        static void listDatasets(string name,H5File file,string path,vector<DataSet>* dataSets);
+        static void unlinkLogs(H5File* file,string path);
+        static vector<DataSet>* listDatasets(string name,H5File* file,string path);
         static int stringToInt(string bitString);
     };
 }

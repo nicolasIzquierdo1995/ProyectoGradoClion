@@ -1,4 +1,4 @@
-// Header file:
+// Header file:DeCompressFile
 #include <string>
 #include "H5Cpp.h"
 
@@ -8,7 +8,7 @@ using namespace std;
 #endif
 namespace inputOutput{
   typedef struct Arguments {
-    H5File file;
+    H5File * file;
     int compressionLevel;
     bool isOk;
     bool compress;

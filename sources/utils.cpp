@@ -1,19 +1,15 @@
 #include "../headers/utils.hpp"
 #include <sys/stat.h>
-#include <boost/filesystem.hpp>
-#include <boost/lambda/bind.hpp>
 #include <iostream>
 #include <cmath>
 using namespace std;
 using namespace H5;
-using namespace boost::filesystem;
-using namespace boost::lambda;
 using namespace utils;
 
-DataSet* Utils::GetDataset(H5File file, string path, string dataSetGrandParentName, string dataSetName)
+DataSet* Utils::GetDataset(H5File* file, string path, string dataSetGrandParentName, string dataSetName)
 {
     try {
-        Group group = file.openGroup(path);
+        Group group = file->openGroup(path);
         hsize_t objCount =  group.getNumObjs() ;
         string parentName;
         for (int i = 0; i < objCount; i++){
@@ -23,44 +19,12 @@ DataSet* Utils::GetDataset(H5File file, string path, string dataSetGrandParentNa
                 break;
             }
         }
-        DataSet* dataset = new DataSet(file.openDataSet(path + "/" + parentName + "/" + dataSetName));
+        DataSet* dataset = new DataSet(file->openDataSet(path + "/" + parentName + "/" + dataSetName));
         return dataset;
     }
     catch(Exception ex) {
         return NULL;
     }
-}
-
-int Utils::GetFilesCount(string filePath){
-    path the_path(filePath);
-    return std::count_if(
-            directory_iterator(the_path),
-            directory_iterator(),
-            static_cast<bool (*)(const path &)>(is_regular_file));
-}
-
-string* Utils::GetFileArray(string filePath, int fileCount){
-    string* fileArray = new string[fileCount];
-
-    int i = 0;
-    typedef vector <path> vec;             // store paths,
-    vec v;                                // so we can sort them later
-
-    copy(directory_iterator(filePath), directory_iterator(), back_inserter(v));
-
-    sort(v.begin(), v.end());             // sort, since directory iteration
-    // is not ordered on some file systems
-
-    for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it) {
-        fileArray[i] = it->string();
-        i++;
-    }
-    return fileArray;
-}
-
-bool Utils::IsInt(DataSet ds){
-    H5T_class_t type_class = ds.getTypeClass();
-    return type_class == H5T_INTEGER;
 }
 
 CompType Utils::getEventDataType() {
@@ -118,61 +82,6 @@ DSetCreatPropList *Utils::createDecompressedSetCreatPropList(int size) {
     return creatPropList;
 }
 
-PredType Utils::getIntType(int* buffer, int count){
-    int max = 0;
-    int min = 0;
-    for (int i = 0; i < count; i++){
-        if (buffer[i] > max){
-            max = buffer[i];
-        }
-        if (buffer[i] < min){
-            min = buffer[i];
-        }
-    }
-
-    if (min >= 0){
-        if (max < 256){
-            return PredType::STD_U8LE;
-        }
-        else if (max < 65536){
-            return PredType::STD_U16LE;
-        }
-        else if (max >= 65536){
-            return PredType::STD_U32LE;
-        }
-    }
-    else{
-        if (max < 128 -1 && abs(min) < 128){
-            return PredType::STD_I8LE;
-        }
-        else if (max < 32767 - 1 && abs(min) < 32767){
-            return PredType::STD_I16LE;
-        }
-        else if (max >= 32767 - 1 && abs(min) >= 32767){
-            return PredType::STD_I32LE;
-        }
-    }
-}
-
-StdvAndMean Utils::getStdvAndMean(int* buffer, int start, int length)
-{
-    float sum = 0.0, mean, standardDeviation = 0.0;
-
-    int i;
-
-    for(i = start; i < start + length; ++i)
-    {
-        sum += buffer[i];
-    }
-
-    mean = sum/length;
-
-    for(i = start; i < start + length; ++i)
-        standardDeviation += pow(buffer[i] - mean, 2);
-
-    return {sqrt(standardDeviation / length), mean };
-}
-
 void Utils::copyFile(string originalName, string copyName){
 
         FILE *src1;
@@ -195,13 +104,13 @@ void Utils::copyFile(string originalName, string copyName){
         chmod(copyName.c_str(), st.st_mode);
 }
 
-void Utils::unlinkLogs(H5File file,string path) {
-    Group group = file.openGroup(path);
+void Utils::unlinkLogs(H5File* file,string path) {
+    Group group = file->openGroup(path);
     hsize_t objCount =  group.getNumObjs() ;
     for (int i = 0; i < objCount; i++){
         string objectName = group.getObjnameByIdx(i);
         if (objectName.find("Log") == 0){
-            file.unlink(path + objectName);
+            file->unlink(path + objectName);
             break;
         }else if(group.getObjTypeByIdx(i) == H5G_GROUP){
             unlinkLogs(file,path + objectName + "/");
@@ -210,23 +119,25 @@ void Utils::unlinkLogs(H5File file,string path) {
 }
 
 
-void Utils::listDatasets(string name,H5File file,string path,vector<DataSet>* dataSets){
-    Group group = file.openGroup(path);
+vector<DataSet>* Utils::listDatasets(string name,H5File* file,string path){
+    vector<DataSet>* dataSets = new vector<DataSet>();
+    Group group = file->openGroup(path);
     hsize_t objCount =  group.getNumObjs();
     for (int i = 0; i < objCount; i++){
         string objectName = group.getObjnameByIdx(i);
         if (objectName.find("read", 0) == 0 ){
-            dataSets->push_back(file.openDataSet(path+objectName + "/Raw/Signal"));
+            dataSets->push_back(group.openDataSet(path+objectName + "/Raw/Signal"));
         }else if(objectName.find("Raw",0) == 0){
-            dataSets->push_back(file.openDataSet(path+objectName + "/Reads/Read_627/Signal"));
+            dataSets->push_back(group.openDataSet(path+objectName + "/Reads/Read_627/Signal"));
         }
     }
+    return dataSets;
 }
 
 
 int Utils::stringToInt(string bitString) {
     int ret = 0;
-    for (int position = 0; position < bitString.size(); position++) {
+    for (int position = 0; position < 16; position++) {
         if (bitString.at(position) == '1') {
             ret |= 1 << 15 - position;
         }

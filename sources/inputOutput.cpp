@@ -48,7 +48,7 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     Utils::replaceString(fileName, ".fast5", "_copy.fast5");
     Utils::copyFile(argv[1], fileName);
 
-    H5File file(fileName, H5F_ACC_RDWR);
+    H5File* file = new H5File(fileName, H5F_ACC_RDWR);
     arg->file = file;
     arg->fileName = fileName;
 
@@ -56,7 +56,7 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     if (arg->compress)
         arg->compressionLevel = atoi(argv[2]);
     else {
-        Group root = arg->file.openGroup("/");
+        Group root = arg->file->openGroup("/");
         if(root.attrExists("compLevel")) {
             int compLvl;
             Attribute at = root.openAttribute("compLevel");
