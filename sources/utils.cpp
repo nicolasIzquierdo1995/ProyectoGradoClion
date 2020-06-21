@@ -110,9 +110,8 @@ DSetCreatPropList* Utils::createCompressedSetCreatPropList(DataSet* dSet) {
     return creatPropList;
 }
 
-DSetCreatPropList *Utils::createDecompressedSetCreatPropList(DataSet* dSet) {
-    hsize_t chunk_dims[1];
-    dSet->getCreatePlist().getChunk(1, chunk_dims);
+DSetCreatPropList *Utils::createDecompressedSetCreatPropList(int size) {
+    hsize_t chunk_dims[1] = { (hsize_t)size };
     DSetCreatPropList* creatPropList = new DSetCreatPropList;
     creatPropList->setDeflate(3);
     creatPropList->setChunk(1, chunk_dims);

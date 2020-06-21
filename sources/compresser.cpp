@@ -455,13 +455,10 @@ void compressEventsAndReads(H5File file,string newFileName,int compLvl){
                 h5Array<int16_t> huffmanSignalBuffer = mapSignalBufferC(compressedSignalBuffers[i]);
 
                 hsize_t chunk_dims[1] = { (hsize_t)huffmanSignalBuffer.size };
-                DSetCreatPropList* creatPropList = new DSetCreatPropList;
-                creatPropList->setDeflate(9);
-                creatPropList->setChunk(1, chunk_dims);
+                DataSpace dataSpace =  DataSpace(1, chunk_dims, chunk_dims);
 
-                DataSpace * dataSpace = new DataSpace(1, chunk_dims, chunk_dims);
-                DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, *dataSpace, *creatPropList));
-                newSignalsDataset->write(huffmanSignalBuffer.ptr, compressedSignalDataType, *dataSpace, *dataSpace);
+                DataSet newSignalsDataset = DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, dataSpace));
+                newSignalsDataset.write(huffmanSignalBuffer.ptr, compressedSignalDataType, dataSpace);
             }
             break;
         }
@@ -540,7 +537,7 @@ void deCompressEventsAndReads(H5File file,string newFileName,int compressionLeve
         CompType eventDataType = Utils::getEventDataType();
         for (int i = 0; i < eventDataSets.size; i++){
             DataSet curentDataSet = eventDataSets.ptr[i];
-            DSetCreatPropList* eventsPlist =  Utils::createDecompressedSetCreatPropList(&curentDataSet);
+            DSetCreatPropList* eventsPlist =  Utils::createDecompressedSetCreatPropList(12);
             DataSet* newEventsDataset = new DataSet(newFile.createDataSet(eventsDatasetNames[i], eventDataType, *eventsDataSpaces[i], *eventsPlist));
             newEventsDataset->write(decompressedEventsBuffers[i].ptr, eventDataType);
         }
@@ -549,7 +546,7 @@ void deCompressEventsAndReads(H5File file,string newFileName,int compressionLeve
 
     for (int i = 0; i < signalDataSets.size; i++){
         DataSet curentDataSet = signalDataSets.ptr[i];
-        DSetCreatPropList* readsPList = Utils::createDecompressedSetCreatPropList(&curentDataSet);
+        DSetCreatPropList* readsPList = Utils::createDecompressedSetCreatPropList(decompressedSignalBuffers[i].size);
         DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], decompressedSignalDataType, *signalDataSpaces[i], *readsPList));
         newSignalsDataset->write(decompressedSignalBuffers[i].ptr, decompressedSignalDataType, *signalDataSpaces[i], *signalDataSpaces[i]);
     }
