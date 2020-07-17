@@ -477,8 +477,7 @@ void getOnlyReads(H5File* file,string newFileName){
         DataSpace signalsDataSpace = currentDataset.getSpace();
         hsize_t chunk_dims[1] = { (hsize_t)compressedSignalBuffers->size };
         signalsDataSpace.getSimpleExtentDims(chunk_dims);
-        int signalsCount = (int)(chunk_dims[0]);
-        DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&currentDataset);
+        DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(chunk_dims[0]);
         currentDataset.read(compressedSignalBuffers[i].ptr,Utils::getDecompressedSignalDataType(),signalsDataSpace);
         DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, signalsDataSpace, *readsPList));
         newSignalsDataset->write(compressedSignalBuffers[i].ptr, compressedSignalDataType, signalsDataSpace, signalsDataSpace);
