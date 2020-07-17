@@ -307,15 +307,15 @@ h5Array<int16_t> mapSignalBufferC(h5Array<int16_t> pInt) {
     string aux;
 
     for (int j = 0; j < pInt.size; j++){
-        if(abs(pInt.ptr[j])<201) {
-            aux = treeC[pInt.ptr[j] + 200];
+        if(treeC.count(pInt.ptr[j]) > 0) {
+            aux = treeC.at(pInt.ptr[j]);
         }else{
-            aux = treeC[401] + bitset<16>(pInt.ptr[j]).to_string();
+            aux = treeC.at(666) + bitset<16>(pInt.ptr[j]).to_string();
         }
         bitstring.append(aux);
     }
 
-    bitstring.append(treeC[401]);
+    bitstring.append(treeC.at(666));
 
     int position = 0;
     int16_t currentInt = 0;
@@ -580,7 +580,7 @@ void readTreeFile() {
         string sPos = line.substr(0,line.find(limit));
         string sVal = line.substr(line.find(limit) + 2);
         pos = stoi(sPos);
-        treeC[pos + 200] = sVal;
+        treeC.insert(std::pair<int,string>(pos,sVal));
     }
 }
 
