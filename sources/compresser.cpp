@@ -465,22 +465,24 @@ void compressEventsAndReads(H5File* file,string newFileName,int compLvl){
 }
 
 void getOnlyReads(H5File* file,string newFileName){
-    DataSet* signalsDataset =  Utils::GetDataset(file, "/Raw/Reads", "Read", "Signal");
-    string readsDatasetName = signalsDataset->getObjName();
-    DataSpace* signalsDataSpace = new DataSpace(signalsDataset->getSpace());
-    DataType signalDataType = signalsDataset->getDataType();
-    hsize_t signalDims[signalsDataSpace->getSimpleExtentNdims()];
-    signalsDataSpace->getSimpleExtentDims(signalDims);
-    int signalsCount = (int)(signalDims[0]);
-    DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(signalsDataset);
-
-    int16_t* newSignalsBuffer = new int16_t[signalsCount];
-    signalsDataset->read(newSignalsBuffer,Utils::getDecompressedSignalDataType(),*signalsDataSpace,*signalsDataSpace);
-
+    h5Array<DataSet> signalDataSets = getDataSetList(file,"Signal");
+    string* signalDatasetNames = new string[signalDataSets.size];
+    h5Array<int16_t>* compressedSignalBuffers = new h5Array<int16_t>[signalDataSets.size];
+    PredType compressedSignalDataType = Utils::getCompressedSignalDataType();
     H5File newFile(newFileName, H5F_ACC_TRUNC);
 
-    DataSet * newSignalsDataset = new DataSet(newFile.createDataSet("/Signal", signalDataType, *signalsDataSpace, *readsPList));
-    newSignalsDataset->write(newSignalsBuffer, signalDataType, *signalsDataSpace, *signalsDataSpace);
+    for (int i = 0; i < signalDataSets.size; i++){
+        DataSet currentDataset = signalDataSets.ptr[i];
+        signalDatasetNames[i] = currentDataset.getObjName();
+        DataSpace signalsDataSpace = currentDataset.getSpace();
+        hsize_t chunk_dims[1] = { (hsize_t)compressedSignalBuffers->size };
+        signalsDataSpace.getSimpleExtentDims(chunk_dims);
+        int signalsCount = (int)(chunk_dims[0]);
+        DSetCreatPropList* readsPList = Utils::createCompressedSetCreatPropList(&currentDataset);
+        currentDataset.read(compressedSignalBuffers[i].ptr,Utils::getDecompressedSignalDataType(),signalsDataSpace);
+        DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, signalsDataSpace, *readsPList));
+        newSignalsDataset->write(compressedSignalBuffers[i].ptr, compressedSignalDataType, signalsDataSpace, signalsDataSpace);
+    }
 }
 
 void deCompressEventsAndReads(H5File* file,string newFileName,int compressionLevel){
