@@ -21,7 +21,7 @@ using namespace huffman;
 map<string,int> globalAttributes;
 uint16_t* firstReads;
 int firstReadsCount;
-string treeC[402];
+map<int,string> treeC;
 MinHeapNode*huffmanTree = NULL;
 bool compressEvents = false;
 
