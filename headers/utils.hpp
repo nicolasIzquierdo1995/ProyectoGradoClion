@@ -27,8 +27,9 @@ namespace utils{
         static CompType getEventDataType();
         static CompType getCompressedEventDataType();
         static bool replaceString(string& str, const string& from, const string& to);
-        static DSetCreatPropList* createCompressedSetCreatPropList(DataSet* dSet);
-        static DSetCreatPropList *createDecompressedSetCreatPropList(int size);
+        static DSetCreatPropList* createCompressedSetCreatPropList(int size);
+        static DSetCreatPropList* createDecompressedSetCreatPropList(int size);
+        static DSetCreatPropList* createCompressedSetCreatPropList(DataSet* dset);
         static PredType getHuffmanSignalDataType();
         static PredType getCompressedSignalDataType();
         static PredType getDecompressedSignalDataType();

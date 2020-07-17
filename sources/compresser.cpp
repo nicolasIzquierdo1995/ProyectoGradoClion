@@ -47,7 +47,8 @@ void saveAtributes(string fileName){
 
         hsize_t chunk_dims[1] = { (hsize_t)firstReadsCount + 1};
         DataSpace dataSpace =  DataSpace(1, chunk_dims, chunk_dims);
-        DataSet * newSignalsDataset = new DataSet(file.createDataSet("first_reads", PredType::NATIVE_UINT16, dataSpace));
+        DSetCreatPropList *creatPropList = Utils::createCompressedSetCreatPropList(firstReadsCount + 1);
+        DataSet * newSignalsDataset = new DataSet(file.createDataSet("first_reads", PredType::NATIVE_UINT16, dataSpace, *creatPropList));
         newSignalsDataset->write(firstReads, PredType::NATIVE_UINT16, dataSpace, dataSpace);
     }
 }
@@ -435,9 +436,10 @@ void compressEventsAndReads(H5File* file,string newFileName,int compLvl){
         case 2:{
             PredType compressedSignalDataType = Utils::getCompressedSignalDataType();
             for (int i = 0; i < signalDataSets.size; i++){
-                hsize_t chunk_dims[1] = { (hsize_t)compressedSignalBuffers->size };
+                hsize_t chunk_dims[1] = { (hsize_t)compressedSignalBuffers[i].size };
                 DataSpace dataSpace =  DataSpace(1, chunk_dims, chunk_dims);
-                DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, dataSpace));
+                DSetCreatPropList* creatPropList = Utils::createCompressedSetCreatPropList(compressedSignalBuffers[i].size);
+                DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, dataSpace, *creatPropList));
                 newSignalsDataset->write(compressedSignalBuffers[i].ptr, compressedSignalDataType, dataSpace, dataSpace);
             }
             break;
@@ -451,7 +453,8 @@ void compressEventsAndReads(H5File* file,string newFileName,int compLvl){
                 hsize_t chunk_dims[1] = { (hsize_t)huffmanSignalBuffer.size };
                 DataSpace dataSpace =  DataSpace(1, chunk_dims, chunk_dims);
 
-                DataSet newSignalsDataset = DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, dataSpace));
+                DSetCreatPropList* creatPropList = Utils::createCompressedSetCreatPropList(huffmanSignalBuffer.size);
+                DataSet newSignalsDataset = DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, dataSpace, *creatPropList));
                 newSignalsDataset.write(huffmanSignalBuffer.ptr, compressedSignalDataType, dataSpace);
             }
             break;
