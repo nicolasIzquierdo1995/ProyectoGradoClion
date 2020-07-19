@@ -96,12 +96,12 @@ vector<int> mapSignalBufferD(h5Array<int16_t> pChar){
             if(aux_tree->number != 666){
                 found = true;
                 int leaf = aux_tree->number;
-                if (leaf == 666 && i+17 < stringSize) {
+                if (leaf == -666 && i+17 < stringSize) {
                     leaf = Utils::stringToInt(bitstring.substr(i + 1, 16));
                     i = i + 16;
                     vec.push_back(leaf);
                 }
-                else if (leaf != 666) {
+                else if (leaf != -666) {
                     vec.push_back(leaf);
                 }
                 else {
@@ -140,7 +140,7 @@ void generateHuffmanFromExample(H5File* file){
         int max = 200;
         int firstSignal = signalsBuffer[0];
         for(int j = 1; j< signalsCount; j++){
-           int diff = signalsBuffer[j] - firstSignal;
+           int diff = signalsBuffer[j] - signalsBuffer[j-1];
            if (diff <= max && diff >= min){
                if (readsMap.find(diff) == readsMap.end()){
                    readsMap[diff] = 1;
@@ -150,11 +150,11 @@ void generateHuffmanFromExample(H5File* file){
                }
            }
            else {
-               if (readsMap.find(666) == readsMap.end()){
-                   readsMap[666] = 1;
+               if (readsMap.find(-666) == readsMap.end()){
+                   readsMap[-666] = 1;
                }
                else {
-                   readsMap[666] = readsMap[666] + 1;
+                   readsMap[-666] = readsMap[-666] + 1;
                }
            }
            //int diff = signalsBuffer[j] - firstSignal;
@@ -317,12 +317,12 @@ h5Array<int16_t> mapSignalBufferC(h5Array<int16_t> pInt) {
         if(treeC.count(pInt.ptr[j]) > 0) {
             aux = treeC.at(pInt.ptr[j]);
         }else{
-            aux = treeC.at(666) + bitset<16>(pInt.ptr[j]).to_string();
+            aux = treeC.at(-666) + bitset<16>(pInt.ptr[j]).to_string();
         }
         bitstring.append(aux);
     }
 
-    bitstring.append(treeC.at(666));
+    bitstring.append(treeC.at(-666));
 
     int position = 0;
     int16_t currentInt = 0;
