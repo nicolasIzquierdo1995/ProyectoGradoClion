@@ -96,12 +96,12 @@ vector<int> mapSignalBufferD(h5Array<int16_t> pChar){
             if(aux_tree->number != 666){
                 found = true;
                 int leaf = aux_tree->number;
-                if (leaf == 201 && i+17 < stringSize) {
+                if (leaf == 666 && i+17 < stringSize) {
                     leaf = Utils::stringToInt(bitstring.substr(i + 1, 16));
                     i = i + 16;
                     vec.push_back(leaf);
                 }
-                else if (leaf != 201) {
+                else if (leaf != 666) {
                     vec.push_back(leaf);
                 }
                 else {
@@ -169,14 +169,14 @@ void generateHuffmanFromExample(H5File* file){
         i++;
     }
 
-    //Huffman::generateTree(readsMap);
-    ofstream myfile;
+    Huffman::generateTree(readsMap);
+    /*ofstream myfile;
     myfile.open ("archivo2.csv");
 
     for(it2 = readsMap.begin(); it2 != readsMap.end(); ++it2) {
         myfile<< it2->first << "," << it2->second << endl;
     }
-    myfile.close();
+    myfile.close();*/
 }
 
 h5Array<compressedEventData> getCompressedEventsBuffer(DataSet *eventsDataset) {
@@ -317,12 +317,12 @@ h5Array<int16_t> mapSignalBufferC(h5Array<int16_t> pInt) {
         if(treeC.count(pInt.ptr[j]) > 0) {
             aux = treeC.at(pInt.ptr[j]);
         }else{
-            aux = treeC.at(251) + bitset<16>(pInt.ptr[j]).to_string();
+            aux = treeC.at(666) + bitset<16>(pInt.ptr[j]).to_string();
         }
         bitstring.append(aux);
     }
 
-    bitstring.append(treeC.at(251));
+    bitstring.append(treeC.at(666));
 
     int position = 0;
     int16_t currentInt = 0;
