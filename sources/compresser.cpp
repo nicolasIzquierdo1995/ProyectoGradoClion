@@ -136,35 +136,42 @@ void generateHuffmanFromExample(H5File* file){
         uint16_t * signalsBuffer = new uint16_t[signalsCount];
         (&*it)->read(signalsBuffer,Utils::getDecompressedSignalDataType(),*signalDataSpace,*signalDataSpace);
 
+        int min = -150;
+        int max = 200;
         int firstSignal = signalsBuffer[0];
         for(int j = 1; j< signalsCount; j++){
-            int diff = signalsBuffer[j] - firstSignal;
-            if (diff <= 200 && diff >= -200){
-                if (readsMap.find(diff) == readsMap.end()){
-                    readsMap[diff] = 1;
-                }
-                else {
-                    readsMap[diff] = readsMap[diff] + 1;
-                }
-            }
-            else {
-                if (readsMap.find(201) == readsMap.end()){
-                    readsMap[201] = 1;
-                }
-                else {
-                    readsMap[201] = readsMap[201] + 2;
-                }
-            }
-
-            firstSignal = signalsBuffer[j];
+           int diff = signalsBuffer[j] - firstSignal;
+           if (diff <= max && diff >= min){
+               if (readsMap.find(diff) == readsMap.end()){
+                   readsMap[diff] = 1;
+               }
+               else {
+                   readsMap[diff] = readsMap[diff] + 1;
+               }
+           }
+           else {
+               if (readsMap.find(666) == readsMap.end()){
+                   readsMap[666] = 1;
+               }
+               else {
+                   readsMap[666] = readsMap[666] + 1;
+               }
+           }
+           //int diff = signalsBuffer[j] - firstSignal;
+           //if (readsMap.find(diff) == readsMap.end()){
+           //    readsMap[diff] = 1;
+           //}
+           //else {
+           //    readsMap[diff] = readsMap[diff] + 1;
+           //}
         }
 
         i++;
     }
 
-    Huffman::generateTree(readsMap);
+    //Huffman::generateTree(readsMap);
     ofstream myfile;
-    myfile.open ("cuco.txt");
+    myfile.open ("archivo2.csv");
 
     for(it2 = readsMap.begin(); it2 != readsMap.end(); ++it2) {
         myfile<< it2->first << "," << it2->second << endl;
@@ -310,12 +317,12 @@ h5Array<int16_t> mapSignalBufferC(h5Array<int16_t> pInt) {
         if(treeC.count(pInt.ptr[j]) > 0) {
             aux = treeC.at(pInt.ptr[j]);
         }else{
-            aux = treeC.at(666) + bitset<16>(pInt.ptr[j]).to_string();
+            aux = treeC.at(251) + bitset<16>(pInt.ptr[j]).to_string();
         }
         bitstring.append(aux);
     }
 
-    bitstring.append(treeC.at(666));
+    bitstring.append(treeC.at(251));
 
     int position = 0;
     int16_t currentInt = 0;
@@ -607,6 +614,8 @@ void Compresser::CompressFile(H5File* file, int compressionLevel){
         removeLogs(file,compressedFileName);
     } else if(compressionLevel == 5){
         getOnlyReads(file,compressedFileName);
+    } else if(compressionLevel == 6){
+        generateHuffmanFromExample(file);
     }
 
     saveAtributes(compressedFileName);
