@@ -12,11 +12,9 @@ int         opt_ind = 1;
 const hsize_t H5TOOLS_BUFSIZE = 33554432;  /* 32 MB */
 
 void error_msg(string errorMessage){
-
 }
 
-void error_msg(string errorMessage, string cuco){
-
+void error_msg(string errorMessage, string errorMessage2){
 }
 
 hid_t h5tools_get_native_type(hid_t type_in){
@@ -59,48 +57,38 @@ static struct long_options l_opts[] = {
         { NULL, 0, '\0' }
 } ;
 
-static void
-trav_addr_add(trav_addr_t *visited, haddr_t addr, const char *path)
+static void trav_addr_add(trav_addr_t *visited, haddr_t addr, const char *path)
 {
-    size_t idx;         /* Index of address to use */
+    size_t idx;
 
-    /* Allocate space if necessary */
     if(visited->nused == visited->nalloc) {
         visited->nalloc = MAX(1, visited->nalloc * 2);;
         visited->objs = (bupBup*)realloc(visited->objs, visited->nalloc * sizeof(visited->objs[0]));
-    } /* end if */
+    }
 
-    /* Append it */
     idx = visited->nused++;
     visited->objs[idx].addr = addr;
     visited->objs[idx].path = strdup(path);
-} /* end trav_addr_add() */
+}
 
-static const char *
-trav_addr_visited(trav_addr_t *visited, haddr_t addr)
+static const char * trav_addr_visited(trav_addr_t *visited, haddr_t addr)
 {
-    size_t u;           /* Local index variable */
+    size_t u;
 
-    /* Look for address */
     for(u = 0; u < visited->nused; u++)
-        /* Check for address already in array */
         if(visited->objs[u].addr == addr)
             return(visited->objs[u].path);
 
-    /* Didn't find address */
     return(NULL);
-} /* end trav_addr_visited() */
+}
 
-static herr_t
-traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linfo,
-            void *_udata)
+static herr_t traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linfo, void *_udata)
 {
     trav_ud_traverse_t *udata = (trav_ud_traverse_t *)_udata;     /* User data */
     char *new_name = NULL;
     const char *full_name;
-    const char *already_visited = NULL; /* Whether the link/object was already visited */
+    const char *already_visited = NULL;
 
-    /* Create the full path name for the link */
     if(udata->is_absolute) {
         size_t base_len = strlen(udata->base_grp_name);
         size_t add_slash = base_len ? ((udata->base_grp_name)[base_len-1] != '/') : 1;
@@ -116,25 +104,19 @@ traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linfo,
     else
         full_name = path;
 
-    /* Perform the correct action for different types of links */
     if(linfo->type == H5L_TYPE_HARD) {
         H5O_info_t oinfo;
 
-        /* Get information about the object */
         if(H5Oget_info_by_name(loc_id, path, &oinfo, H5P_DEFAULT) < 0) {
             if(new_name)
                 free(new_name);
             return(H5_ITER_ERROR);
         }
 
-        /* If the object has multiple links, add it to the list of addresses
-         *  already visited, if it isn't there already
-         */
         if(oinfo.rc > 1)
             if(NULL == (already_visited = trav_addr_visited(udata->seen, oinfo.addr)))
                 trav_addr_add(udata->seen, oinfo.addr, full_name);
 
-        /* Make 'visit object' callback */
         if(udata->visitor->visit_obj)
             if((*udata->visitor->visit_obj)(full_name, &oinfo, already_visited, udata->visitor->udata) < 0) {
                 if(new_name)
@@ -143,7 +125,6 @@ traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linfo,
             }
     } /* end if */
     else {
-        /* Make 'visit link' callback */
         if(udata->visitor->visit_lnk)
             if((*udata->visitor->visit_lnk)(full_name, linfo, udata->visitor->udata) < 0) {
                 if(new_name)
@@ -156,59 +137,44 @@ traverse_cb(hid_t loc_id, const char *path, const H5L_info_t *linfo,
         free(new_name);
 
     return(H5_ITER_CONT);
-} /* end traverse_cb() */
+}
 
-
-static int
-traverse(hid_t file_id, const char *grp_name, hbool_t visit_start,
-         hbool_t recurse, const trav_visitor_t *visitor)
+static int traverse(hid_t file_id, const char *grp_name, hbool_t visit_start, hbool_t recurse, const trav_visitor_t *visitor)
 {
-    H5O_info_t  oinfo;          /* Object info for starting group */
+    H5O_info_t  oinfo;
 
-    /* Get info for starting object */
     if(H5Oget_info_by_name(file_id, grp_name, &oinfo, H5P_DEFAULT) < 0)
         return -1;
 
-    /* Visit the starting object */
     if(visit_start && visitor->visit_obj)
         (*visitor->visit_obj)(grp_name, &oinfo, NULL, visitor->udata);
 
-    /* Go visiting, if the object is a group */
     if(oinfo.type == H5O_TYPE_GROUP) {
-        trav_addr_t seen;           /* List of addresses seen */
-        trav_ud_traverse_t udata;   /* User data for iteration callback */
+        trav_addr_t seen;
+        trav_ud_traverse_t udata;
 
-        /* Init addresses seen */
         seen.nused = seen.nalloc = 0;
         seen.objs = NULL;
 
-        /* Check for multiple links to top group */
         if(oinfo.rc > 1)
             trav_addr_add(&seen, oinfo.addr, grp_name);
 
-        /* Set up user data structure */
         udata.seen = &seen;
         udata.visitor = visitor;
         udata.is_absolute = (*grp_name == '/');
         udata.base_grp_name = grp_name;
 
-        /* Check for iteration of links vs. visiting all links recursively */
         if(recurse) {
-            /* Visit all links in group, recursively */
             if(H5Lvisit_by_name(file_id, grp_name, H5_INDEX_NAME, H5_ITER_INC, traverse_cb, &udata, H5P_DEFAULT) < 0)
                 return -1;
         } /* end if */
         else {
-            /* Iterate over links in group */
             if(H5Literate_by_name(file_id, grp_name, H5_INDEX_NAME, H5_ITER_INC, NULL, traverse_cb, &udata, H5P_DEFAULT) < 0)
                 return -1;
         } /* end else */
 
-        /* Free visited addresses table */
         if(seen.objs) {
-            size_t u;       /* Local index variable */
-
-            /* Free paths to objects */
+            size_t u;
             for(u = 0; u < seen.nused; u++)
                 free(seen.objs[u].path);
             free(seen.objs);
@@ -247,34 +213,27 @@ trav_table_add(trav_table_t *table,
     table->objs[newObj].links = NULL;
 }
 
-
-static void
-trav_table_addlink(trav_table_t *table, haddr_t objno, const char *path)
+static void trav_table_addlink(trav_table_t *table, haddr_t objno, const char *path)
 {
-    size_t i;           /* Local index variable */
-
+    size_t i;
     for(i = 0; i < table->nobjs; i++) {
         if(table->objs[i].objno == objno) {
             size_t n;
 
-/* already inserted? */
             if(strcmp(table->objs[i].name, path) == 0)
                 return;
 
-/* allocate space if necessary */
             if(table->objs[i].nlinks == (unsigned)table->objs[i].sizelinks) {
                 table->objs[i].sizelinks = MAX(1, table->objs[i].sizelinks * 2);
                 table->objs[i].links = (trav_link_t*)realloc(table->objs[i].links, table->objs[i].sizelinks * sizeof(trav_link_t));
             } /* end if */
-
-/* insert it */
 
             n = table->objs[i].nlinks++;
             table->objs[i].links[n].new_name = (char *)strdup(path);
 
             return;
         } /* end for */
-    } /* end for */
+    }
 
     assert(0 && "object not in table?!?");
 }
@@ -296,45 +255,31 @@ void init_packobject(pack_info_t *obj)
     obj->nfilters = 0;
 }
 
-
-static int
-trav_table_visit_obj(const char *path, const H5O_info_t *oinfo,
-                     const char *already_visited, void *udata)
+static int trav_table_visit_obj(const char *path, const H5O_info_t *oinfo, const char *already_visited, void *udata)
 {
     trav_table_t *table = (trav_table_t *)udata;
 
-    /* Check if we've already seen this object */
     if(NULL == already_visited)
-        /* add object to table */
         trav_table_add(table, path, oinfo);
     else
-        /* Add alias for object to table */
         trav_table_addlink(table, oinfo->addr, path);
 
     return(0);
-} /* end trav_table_visit_obj() */
+}
 
-
-static int
-trav_table_visit_lnk(const char *path, const H5L_info_t *linfo, void *udata)
+static int trav_table_visit_lnk(const char *path, const H5L_info_t *linfo, void *udata)
 {
-/* Add the link to the 'table' struct */
-trav_table_add((trav_table_t *)udata, path, NULL);
+    trav_table_add((trav_table_t *)udata, path, NULL);
+    return(0);
+}
 
-return(0);
-} /* end trav_table_visit_lnk() */
-
-int
-h5trav_gettable(hid_t fid, trav_table_t *table)
+int h5trav_gettable(hid_t fid, trav_table_t *table)
 {
-    trav_visitor_t table_visitor;       /* Visitor structure for trav_table_t's */
-
-    /* Init visitor structure */
+    trav_visitor_t table_visitor;
     table_visitor.visit_obj = trav_table_visit_obj;
     table_visitor.visit_lnk = trav_table_visit_lnk;
     table_visitor.udata = table;
 
-    /* Traverse all objects in the file, visiting each object & link */
     if(traverse(fid, "/", true, true, &table_visitor) < 0)
         return -1;
     return 0;
@@ -347,12 +292,10 @@ void trav_table_init(trav_table_t **tbl)
     table->size = 0;
     table->nobjs = 0;
     table->objs = NULL;
-
     *tbl = table;
 }
 
-static const char*
-MapIdToName(hid_t refobj_id, trav_table_t *travt)
+static const char* MapIdToName(hid_t refobj_id, trav_table_t *travt)
 {
     unsigned int u;
     const char* ret = NULL;
@@ -362,9 +305,8 @@ MapIdToName(hid_t refobj_id, trav_table_t *travt)
         if(travt->objs[u].type == H5O_TYPE_DATASET ||
            travt->objs[u].type == H5O_TYPE_GROUP ||
            travt->objs[u].type == H5O_TYPE_NAMED_DATATYPE) {
-            H5O_info_t   ref_oinfo;     /* Stat for the refobj id */
+            H5O_info_t   ref_oinfo;
 
-            /* obtain information to identify the referenced object uniquely */
             if(H5Oget_info(refobj_id, &ref_oinfo) < 0)
                 goto out;
 
@@ -400,14 +342,12 @@ void trav_table_free( trav_table_t *table )
     free(table);
 }
 
-int h5tools_canreadf(const char* name, /* object name, serves also as boolean print */
-                     hid_t dcpl_id)    /* dataset creation property list */
+int h5tools_canreadf(const char* name, hid_t dcpl_id)
 {
-
-    int          nfilters;       /* number of filters */
-    H5Z_filter_t filtn;          /* filter identification number */
-    int          i;              /* index */
-    int          have_deflate=0; /* assume initially we do not have filters */
+    int          nfilters;
+    H5Z_filter_t filtn;
+    int          i;
+    int          have_deflate=0;
     int          have_szip=0;
     int          have_shuffle=0;
     int          have_fletcher=0;
@@ -425,15 +365,11 @@ int h5tools_canreadf(const char* name, /* object name, serves also as boolean pr
     have_fletcher=1;
 #endif
 
-    /* get information about filters */
     if ((nfilters = H5Pget_nfilters(dcpl_id))<0)
         return -1;
-
-    /* if we do not have filters, we can read the dataset safely */
     if (!nfilters)
         return 1;
 
-    /* check availability of filters */
     for (i=0; i<nfilters; i++) {
         if ((filtn = H5Pget_filter(dcpl_id, (unsigned) i, 0, 0, 0, 0, 0, 0)) < 0)
             return -1;
@@ -441,38 +377,27 @@ int h5tools_canreadf(const char* name, /* object name, serves also as boolean pr
     return 1;
 }
 
-static int aux_find_obj(const char* name,          /* object name from traverse list */
-                 pack_opt_t *options,       /* repack options */
-                 pack_info_t *obj /*OUT*/)  /* info about object to filter */
+static int aux_find_obj(const char* name, pack_opt_t *options, pack_info_t *obj)
 {
     return -1;
 }
 
-static
-int aux_assign_obj(const char* name,            /* object name from traverse list */
-                   pack_opt_t *options,         /* repack options */
-                   pack_info_t *obj /*OUT*/)    /* info about object to filter */
+static int aux_assign_obj(const char* name, pack_opt_t *options, pack_info_t *obj)
 {
-
     int  idx, i;
     pack_info_t tmp;
-
     init_packobject(&tmp);
-
     idx = aux_find_obj(name,options,&tmp);
 
     if (options->all_filter)
     {
         int k;
-
-        /* assign the global filters */
         tmp.nfilters=options->n_filter_g;
         for ( k = 0; k < options->n_filter_g; k++)
             tmp.filter[k]=options->filter_g[k];
     }
     if (options->all_layout)
     {
-        /* assign the global layout info to the OBJ info */
         tmp.layout=options->layout_g;
         switch (options->layout_g)
         {
@@ -488,7 +413,7 @@ int aux_assign_obj(const char* name,            /* object name from traverse lis
                 break;
             default:
                 break;
-        }/*switch*/
+        }
     }
 
     *obj = tmp;
@@ -496,12 +421,7 @@ int aux_assign_obj(const char* name,            /* object name from traverse lis
 
 }
 
-
-obj_list_t* parse_filter(const char *str,
-                         int *n_objs,
-                         filter_info_t *filt,
-                         pack_opt_t *options,
-                         int *is_glb)
+obj_list_t* parse_filter(const char *str, int *n_objs, filter_info_t *filt, pack_opt_t *options, int *is_glb)
 {
     unsigned    i, u;
     char        c;
@@ -514,12 +434,9 @@ obj_list_t* parse_filter(const char *str,
     obj_list_t* obj_list=NULL;
     unsigned    pixels_per_block;
 
-
-    /* initialize compression  info */
     memset(filt,0,sizeof(filter_info_t));
     *is_glb = 0;
 
-    /* check for the end of object list and number of objects */
     for ( i = 0, n = 0; i < len; i++)
     {
         c = str[i];
@@ -549,7 +466,6 @@ obj_list_t* parse_filter(const char *str,
     }
     *n_objs=n;
 
-    /* get object list */
     for ( j = 0, k = 0, n = 0; j < end_obj; j++, k++)
     {
         c = str[j];
@@ -563,7 +479,6 @@ obj_list_t* parse_filter(const char *str,
             k=-1;
         }
     }
-    /* nothing after : */
     if (end_obj+1==(int)len)
     {
         if (obj_list) free(obj_list);
@@ -571,8 +486,6 @@ obj_list_t* parse_filter(const char *str,
         exit(EXIT_FAILURE);
     }
 
-
-    /* get filter additional parameters */
     m=0;
     for ( i=end_obj+1, k=0, j=0; i<len; i++,k++)
     {
@@ -580,11 +493,10 @@ obj_list_t* parse_filter(const char *str,
         scomp[k]=c;
         if ( c=='=' || i==len-1)
         {
-            if ( c=='=') /*one more parameter */
+            if ( c=='=')
             {
-                scomp[k]='\0';     /*cut space */
+                scomp[k]='\0';
 
-                    /* here we could have 1 or 2 digits  */
                 for ( m=0,u=i+1; u<len; u++,m++)
                 {
                     c = str[u];
@@ -597,12 +509,11 @@ obj_list_t* parse_filter(const char *str,
                 } /* u */
 
                 stype[m]='\0';
-
                 filt->cd_values[j++]=atoi(stype);
                 i+=m; /* jump */
             }
             else if (i==len-1)
-            { /*no more parameters */
+            {
                 scomp[k+1]='\0';
                 no_param=1;
             }
@@ -643,25 +554,19 @@ int h5repack_end  (pack_opt_t *options)
     return options_table_free(options->op_tbl);
 }
 
-int h5repack_addfilter(const char* str,
-                       pack_opt_t *options)
+int h5repack_addfilter(const char* str, pack_opt_t *options)
 {
-    obj_list_t      *obj_list=NULL; /* one object list for the -f and -l option entry */
-    filter_info_t   filter;         /* filter info for the current -f option entry */
-    int             n_objs;         /* number of objects in the current -f or -l option entry */
-    int             is_glb;         /* is the filter global */
+    obj_list_t      *obj_list=NULL;
+    filter_info_t   filter;
+    int             n_objs;
+    int             is_glb;
 
-
-
-    /* parse the -f option */
     if(NULL == (obj_list = parse_filter(str, &n_objs, &filter, options, &is_glb)))
         return -1;
 
-    /* if it applies to all objects */
     if(is_glb)
     {
         int n;
-
         n = options->n_filter_g++; /* increase # of global filters */
 
         if(options->n_filter_g > H5_REPACK_MAX_NFILTERS)
@@ -670,27 +575,24 @@ int h5repack_addfilter(const char* str,
             free(obj_list);
             return -1;
         }
-
         options->filter_g[n] = filter;
     }
     free(obj_list);
     return 0;
 }
 
-
 hid_t copy_named_datatype(hid_t type_in, hid_t fidout, named_dt_t **named_dt_head_p, trav_table_t *travt, pack_opt_t *options)
 {
-    named_dt_t  *dt = *named_dt_head_p; /* Stack pointer */
-    named_dt_t  *dt_ret = NULL;     /* Datatype to return */
-    H5O_info_t  oinfo;              /* Object info of input dtype */
-    hid_t       ret_value = -1;     /* The identifier of the named dtype in the out file */
+    named_dt_t  *dt = *named_dt_head_p;
+    named_dt_t  *dt_ret = NULL;
+    H5O_info_t  oinfo;
+    hid_t       ret_value = -1;
 
     if(H5Oget_info(type_in, &oinfo) < 0)
         goto error;
 
     if(*named_dt_head_p)
     {
-        /* Stack already exists, search for the datatype */
         while(dt && dt->addr_in != oinfo.addr)
             dt = dt->next;
 
@@ -698,48 +600,36 @@ hid_t copy_named_datatype(hid_t type_in, hid_t fidout, named_dt_t **named_dt_hea
     }
     else
     {
-        /* Create the stack */
         size_t  i;
 
         for(i=0; i<travt->nobjs; i++)
             if(travt->objs[i].type == H5TRAV_TYPE_NAMED_DATATYPE)
             {
-                /* Push onto the stack */
                 if(NULL == (dt = (named_dt_t *) malloc(sizeof(named_dt_t))))
                     goto error;
                 dt->next = *named_dt_head_p;
                 *named_dt_head_p = dt;
-
-                /* Update the address and id */
                 dt->addr_in = travt->objs[i].objno;
                 dt->id_out = -1;
 
-                /* Check if this type is the one requested */
                 if(oinfo.addr == dt->addr_in)
                 {
                     assert(!dt_ret);
                     dt_ret = dt;
-                } /* end if */
-            } /* end if */
-    } /* end else */
+                }
+            }
+    }
 
-    /* Handle the case that the requested datatype was not found.  This is
-     * possible if the datatype was committed anonymously in the input file. */
     if(!dt_ret)
     {
-        /* Push the new datatype onto the stack */
         if(NULL == (dt_ret = (named_dt_t *) malloc(sizeof(named_dt_t))))
             goto error;
         dt_ret->next = *named_dt_head_p;
         *named_dt_head_p = dt_ret;
-
-        /* Update the address and id */
         dt_ret->addr_in = oinfo.addr;
         dt_ret->id_out = -1;
-    } /* end if */
+    }
 
-    /* If the requested datatype does not yet exist in the output file, copy it
-     * anonymously */
     if(dt_ret->id_out < 0)
     {
         if (options->use_native==1)
@@ -750,13 +640,9 @@ hid_t copy_named_datatype(hid_t type_in, hid_t fidout, named_dt_t **named_dt_hea
             goto error;
         if(H5Tcommit_anon(fidout, dt_ret->id_out, H5P_DEFAULT, H5P_DEFAULT) < 0)
             goto error;
-    } /* end if */
-
-    /* Set return value */
+    }
     ret_value = dt_ret->id_out;
 
-    /* Increment the ref count on id_out, because the calling function will try
-     * to close it */
     if(H5Iinc_ref(ret_value) < 0)
         goto error;
 
@@ -764,8 +650,7 @@ hid_t copy_named_datatype(hid_t type_in, hid_t fidout, named_dt_t **named_dt_hea
 
     error:
     return(-1);
-} /* end copy_named_datatype */
-
+}
 
 int named_datatype_free(named_dt_t **named_dt_head_p, int ignore_err)
 {
@@ -773,49 +658,34 @@ int named_datatype_free(named_dt_t **named_dt_head_p, int ignore_err)
 
     while(dt)
     {
-        /* Pop the datatype off the stack and free it */
         if(H5Tclose(dt->id_out) < 0 && !ignore_err)
             goto error;
         dt = dt->next;
         free(*named_dt_head_p);
         *named_dt_head_p = dt;
-    } /* end while */
-
+    }
     return 0;
 
     error:
     return -1;
-} /* end named_datatype_free */
+}
 
-
-
-int apply_filters(const char* name,    /* object name from traverse list */
-                  int rank,            /* rank of dataset */
-                  hsize_t *dims,       /* dimensions of dataset */
-                  size_t msize,        /* size of type */
-                  hid_t dcpl_id,       /* dataset creation property list */
-                  pack_opt_t *options, /* repack options */
-                  int *has_filter)     /* (OUT) object NAME has a filter */
-
-
+int apply_filters(const char* name, int rank, hsize_t *dims, size_t msize, hid_t dcpl_id, pack_opt_t *options, int *has_filter)
 {
-    int          nfilters;       /* number of filters in DCPL */
-    hsize_t      chsize[64];     /* chunk size in elements */
+    int          nfilters;
+    hsize_t      chsize[64];
     H5D_layout_t layout;
     int          i;
     pack_info_t  obj;
-
     *has_filter = 0;
 
-    if (rank==0) /* scalar dataset, do not apply */
+    if (rank==0)
         return 0;
 
     init_packobject(&obj);
 
     if (aux_assign_obj(name,options,&obj)==0)
         return 0;
-
-    /* get information about input filters */
     if ((nfilters = H5Pget_nfilters(dcpl_id))<0)
         return -1;
 
@@ -830,7 +700,6 @@ int apply_filters(const char* name,    /* object name from traverse list */
     {
         if ((layout = H5Pget_layout(dcpl_id))<0)
             return -1;
-
         if (layout == H5D_CHUNKED)
         {
             if ((rank = H5Pget_chunk(dcpl_id,NELMTS(chsize),chsize/*out*/))<0)
@@ -844,21 +713,16 @@ int apply_filters(const char* name,    /* object name from traverse list */
 
     if (obj.nfilters)
     {
-
         if (obj.layout==-1)
         {
-
-            /* stripmine info */
-            hsize_t sm_size[H5S_MAX_RANK]; /*stripmine size */
-            hsize_t sm_nbytes;             /*bytes per stripmine */
-
+            hsize_t sm_size[H5S_MAX_RANK];
+            hsize_t sm_nbytes;
             obj.chunk.rank = rank;
-
             sm_nbytes = msize;
             for ( i = rank; i > 0; --i)
             {
                 hsize_t size = H5TOOLS_BUFSIZE / sm_nbytes;
-                if ( size == 0) /* datum size > H5TOOLS_BUFSIZE */
+                if ( size == 0)
                     size = 1;
                 sm_size[i - 1] = min(dims[i - 1], size);
                 sm_nbytes *= sm_size[i - 1];
@@ -881,27 +745,22 @@ int apply_filters(const char* name,    /* object name from traverse list */
                     break;
                 case H5Z_FILTER_DEFLATE:
                 {
-                    unsigned     aggression;     /* the deflate level */
-
+                    unsigned aggression;
                     aggression = obj.filter[i].cd_values[0];
-                    /* set up for deflated data */
                     if(H5Pset_chunk(dcpl_id, obj.chunk.rank, obj.chunk.chunk_lengths)<0)
                         return -1;
                     if(H5Pset_deflate(dcpl_id,aggression)<0)
                         return -1;
                 }
                 break;
-            } /* switch */
-        }/*i*/
-
+            }
+        }
     }
 
     if (obj.layout>=0)
     {
-        /* a layout was defined */
         if (H5Pset_layout(dcpl_id, obj.layout)<0)
             return -1;
-
         if (H5D_CHUNKED == obj.layout)
         {
             if(H5Pset_chunk(dcpl_id, obj.chunk.rank, obj.chunk.chunk_lengths)<0)
@@ -912,7 +771,6 @@ int apply_filters(const char* name,    /* object name from traverse list */
             if (H5Pset_alloc_time(dcpl_id, H5D_ALLOC_TIME_EARLY)<0)
                 return -1;
         }
-            /* remove filters for the H5D_CONTIGUOUS case */
         else if (H5D_CONTIGUOUS == obj.layout)
         {
             if (H5Premove_filter(dcpl_id,H5Z_FILTER_ALL)<0)
@@ -920,29 +778,22 @@ int apply_filters(const char* name,    /* object name from traverse list */
         }
 
     }
-
     return 0;
 }
 
-
-static int copy_refs_attr(hid_t loc_in,
-                          hid_t loc_out,
-                          pack_opt_t *options,
-                          trav_table_t *travt,
-                          hid_t fidout         /* for saving references */
-)
+static int copy_refs_attr(hid_t loc_in, hid_t loc_out, pack_opt_t *options, trav_table_t *travt, hid_t fidout)
 {
-    hid_t      attr_id = -1;      /* attr ID */
-    hid_t      attr_out = -1;     /* attr ID */
-    hid_t      space_id = -1;     /* space ID */
-    hid_t      ftype_id = -1;     /* file data type ID */
-    hid_t      mtype_id = -1;     /* memory data type ID */
-    size_t     msize;             /* memory size of type */
-    hsize_t    nelmts;            /* number of elements in dataset */
-    int        rank;              /* rank of dataset */
-    hsize_t    dims[H5S_MAX_RANK];/* dimensions of dataset */
+    hid_t      attr_id = -1;
+    hid_t      attr_out = -1;
+    hid_t      space_id = -1;
+    hid_t      ftype_id = -1;
+    hid_t      mtype_id = -1;
+    size_t     msize;
+    hsize_t    nelmts;
+    int        rank;
+    hsize_t    dims[H5S_MAX_RANK];
     char       name[255];
-    H5O_info_t oinfo;           /* Object info */
+    H5O_info_t oinfo;
     int        j;
     unsigned   u;
 
@@ -951,51 +802,26 @@ static int copy_refs_attr(hid_t loc_in,
 
     for(u = 0; u < (unsigned)oinfo.num_attrs; u++)
     {
-        /*-------------------------------------------------------------------------
-        * open
-        *-------------------------------------------------------------------------
-        */
-        /* open attribute */
         if((attr_id = H5Aopen_by_idx(loc_in, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, (hsize_t)u, H5P_DEFAULT, H5P_DEFAULT)) < 0)
             goto error;
-
-        /* get name */
         if(H5Aget_name(attr_id, 255, name) < 0)
             goto error;
-
-        /* get the file datatype  */
         if((ftype_id = H5Aget_type(attr_id)) < 0)
             goto error;
-
-        /* get the dataspace handle  */
         if((space_id = H5Aget_space(attr_id)) < 0)
             goto error;
-
-        /* get dimensions  */
         if((rank = H5Sget_simple_extent_dims(space_id, dims, NULL)) < 0)
             goto error;
 
-
-        /*-------------------------------------------------------------------------
-        * elements
-        *-------------------------------------------------------------------------
-        */
         nelmts = 1;
         for(j = 0; j < rank; j++)
             nelmts *= dims[j];
 
         if((mtype_id = h5tools_get_native_type(ftype_id)) < 0)
             goto error;
-
         if((msize = H5Tget_size(mtype_id)) == 0)
             goto error;
 
-
-        /*-------------------------------------------------------------------------
-        * object references are a special case
-        * we cannot just copy the buffers, but instead we recreate the reference
-        *-------------------------------------------------------------------------
-        */
         if(H5Tequal(mtype_id, H5T_STD_REF_OBJ))
         {
             hid_t       refobj_id;
@@ -1003,11 +829,6 @@ static int copy_refs_attr(hid_t loc_in,
             unsigned    k;
             const char* refname;
             hobj_ref_t  *buf = NULL;
-
-            /*-------------------------------------------------------------------------
-            * read input to memory
-            *-------------------------------------------------------------------------
-            */
 
             if (nelmts)
             {
@@ -1035,54 +856,35 @@ static int copy_refs_attr(hid_t loc_in,
                                 goto error;
                         } H5E_END_TRY;
 
-                    /* get the name. a valid name could only occur in the
-                     * second traversal of the file
-                     */
                     if((refname = MapIdToName(refobj_id, travt)) != NULL)
                     {
-                        /* create the reference */
                         if(H5Rcreate(&refbuf[k], fidout, refname, H5R_OBJECT, -1) < 0)
                             goto error;
                     }
                     H5Oclose(refobj_id);
-                } /* k */
-            } /*nelmts*/
+                }
+            }
 
-            /*-------------------------------------------------------------------------
-            * copy
-            *-------------------------------------------------------------------------
-            */
             if((attr_out = H5Acreate2(loc_out, name, ftype_id, space_id, H5P_DEFAULT, H5P_DEFAULT)) < 0)
                 goto error;
             if(nelmts)
                 if(H5Awrite(attr_out, mtype_id, refbuf) < 0)
                     goto error;
-
             if(H5Aclose(attr_out) < 0)
                 goto error;
-
             if(refbuf)
                 free(refbuf);
             if(buf)
                 free(buf);
-        }/*H5T_STD_REF_OBJ*/
-
-            /*-------------------------------------------------------------------------
-            * dataset region references
-            *-------------------------------------------------------------------------
-            */
+        }
         else if(H5Tequal(mtype_id, H5T_STD_REF_DSETREG))
         {
             hid_t            refobj_id;
-            hdset_reg_ref_t  *refbuf = NULL; /* input buffer for region references */
-            hdset_reg_ref_t  *buf = NULL;    /* output buffer */
+            hdset_reg_ref_t  *refbuf = NULL;
+            hdset_reg_ref_t  *buf = NULL;
             const char*      refname;
             unsigned         k;
 
-            /*-------------------------------------------------------------------------
-            * read input to memory
-            *-------------------------------------------------------------------------
-            */
             if(nelmts)
             {
                 buf = (hdset_reg_ref_t *)malloc((unsigned)(nelmts * msize));
@@ -1090,20 +892,16 @@ static int copy_refs_attr(hid_t loc_in,
                 {
                     printf( "cannot read into memory\n" );
                     goto error;
-                } /* end if */
+                }
                 if(H5Aread(attr_id, mtype_id, buf) < 0)
                     goto error;
 
-                /*-------------------------------------------------------------------------
-                * create output
-                *-------------------------------------------------------------------------
-                */
                 refbuf = (hdset_reg_ref_t *)calloc(sizeof(hdset_reg_ref_t), (size_t)nelmts); /*init to zero */
                 if(refbuf == NULL)
                 {
                     printf( "cannot allocate memory\n" );
                     goto error;
-                } /* end if */
+                }
 
                 for(k = 0; k < nelmts; k++)
                 {
@@ -1113,30 +911,21 @@ static int copy_refs_attr(hid_t loc_in,
                                 continue;
                         } H5E_END_TRY;
 
-                    /* get the name. a valid name could only occur in the
-                     * second traversal of the file
-                     */
                     if((refname = MapIdToName(refobj_id, travt)) != NULL)
                     {
-                        hid_t region_id;    /* region id of the referenced dataset */
+                        hid_t region_id;
 
                         if((region_id = H5Rget_region(attr_id, H5R_DATASET_REGION, &buf[k])) < 0)
                             goto error;
-
-                        /* create the reference, we need the space_id */
                         if(H5Rcreate(&refbuf[k], fidout, refname, H5R_DATASET_REGION, region_id) < 0)
                             goto error;
                         if(H5Sclose(region_id) < 0)
                             goto error;
                     } /* end if */
                     H5Oclose(refobj_id);
-                } /* k */
-            } /*nelmts */
+                }
+            }
 
-            /*-------------------------------------------------------------------------
-            * copy
-            *-------------------------------------------------------------------------
-            */
             if((attr_out = H5Acreate2(loc_out, name, ftype_id, space_id, H5P_DEFAULT, H5P_DEFAULT)) < 0)
                 goto error;
             if(nelmts)
@@ -1147,17 +936,12 @@ static int copy_refs_attr(hid_t loc_in,
 
             if(H5Aclose(attr_out) < 0)
                 goto error;
-
             if(refbuf)
                 free(refbuf);
             if(buf)
                 free(buf);
-        } /* H5T_STD_REF_DSETREG */
+        }
 
-        /*-------------------------------------------------------------------------
-        * close
-        *-------------------------------------------------------------------------
-        */
         if(H5Tclose(ftype_id) < 0)
             goto error;
         if(H5Tclose(mtype_id) < 0)
@@ -1166,8 +950,7 @@ static int copy_refs_attr(hid_t loc_in,
             goto error;
         if(H5Aclose(attr_id) < 0)
             goto error;
-    } /* u */
-
+    }
     return 0;
 
     error:
@@ -1182,71 +965,52 @@ static int copy_refs_attr(hid_t loc_in,
     return -1;
 }
 
-int copy_attr(hid_t loc_in,
-              hid_t loc_out,
-              named_dt_t **named_dt_head_p,
-              trav_table_t *travt,
-              pack_opt_t *options)
+int copy_attr(hid_t loc_in, hid_t loc_out, named_dt_t **named_dt_head_p, trav_table_t *travt, pack_opt_t *options)
 {
-    hid_t      attr_id=-1;        /* attr ID */
-    hid_t      attr_out=-1;       /* attr ID */
-    hid_t      space_id=-1;       /* space ID */
-    hid_t      ftype_id=-1;       /* file type ID */
-    hid_t      wtype_id=-1;       /* read/write type ID */
-    size_t     msize;             /* size of type */
-    void       *buf=NULL;         /* data buffer */
-    hsize_t    nelmts;            /* number of elements in dataset */
-    int        rank;              /* rank of dataset */
-    htri_t     is_named;          /* Whether the datatype is named */
-    hsize_t    dims[H5S_MAX_RANK];/* dimensions of dataset */
+    hid_t      attr_id=-1;
+    hid_t      attr_out=-1;
+    hid_t      space_id=-1;
+    hid_t      ftype_id=-1;
+    hid_t      wtype_id=-1;
+    size_t     msize;
+    void       *buf=NULL;
+    hsize_t    nelmts;
+    int        rank;
+    htri_t     is_named;
+    hsize_t    dims[H5S_MAX_RANK];
     char       name[255];
-    H5O_info_t oinfo;             /* object info */
+    H5O_info_t oinfo;
     int        j;
     unsigned   u;
 
     if(H5Oget_info(loc_in, &oinfo) < 0)
         goto error;
 
-    /*-------------------------------------------------------------------------
-    * copy all attributes
-    *-------------------------------------------------------------------------
-    */
-
     for ( u = 0; u < (unsigned)oinfo.num_attrs; u++)
     {
         buf=NULL;
 
-        /* open attribute */
         if((attr_id = H5Aopen_by_idx(loc_in, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, (hsize_t)u, H5P_DEFAULT, H5P_DEFAULT)) < 0)
             goto error;
-
-        /* get name */
         if (H5Aget_name( attr_id, (size_t)255, name ) < 0)
             goto error;
-
-        /* get the file datatype  */
         if ((ftype_id = H5Aget_type( attr_id )) < 0 )
             goto error;
-
-        /* Check if the datatype is committed */
         if((is_named = H5Tcommitted(ftype_id)) < 0)
             goto error;
         if(is_named && travt)
         {
             hid_t fidout;
 
-            /* Create out file id */
             if((fidout = H5Iget_file_id(loc_out)) < 0)
                 goto error;
 
-            /* Copy named dt */
             if((wtype_id = copy_named_datatype(ftype_id, fidout, named_dt_head_p,
                                                travt, options)) < 0)
             {
                 H5Fclose(fidout);
                 goto error;
-            } /* end if */
-
+            }
             if(H5Fclose(fidout) < 0)
                 goto error;
         }
@@ -1256,13 +1020,10 @@ int copy_attr(hid_t loc_in,
                 wtype_id = h5tools_get_native_type(ftype_id);
             else
                 wtype_id = H5Tcopy(ftype_id);
-        } /* end if */
+        }
 
-        /* get the dataspace handle  */
         if ((space_id = H5Aget_space( attr_id )) < 0 )
             goto error;
-
-        /* get dimensions  */
         if ( (rank = H5Sget_simple_extent_dims(space_id, dims, NULL)) < 0 )
             goto error;
 
@@ -1273,25 +1034,12 @@ int copy_attr(hid_t loc_in,
         if ((msize=H5Tget_size(wtype_id))==0)
             goto error;
 
-        /*-------------------------------------------------------------------------
-        * object references are a special case
-        * we cannot just copy the buffers, but instead we recreate the reference
-        * this is done on a second sweep of the file that just copies
-        * the referenced objects
-        *-------------------------------------------------------------------------
-        */
-
         if (H5T_REFERENCE==H5Tget_class(wtype_id))
         {
             ;
         }
         else
         {
-            /*-------------------------------------------------------------------------
-            * read to memory
-            *-------------------------------------------------------------------------
-            */
-
             buf = (void *)malloc((size_t)(nelmts * msize));
             if(buf == NULL)
             {
@@ -1300,41 +1048,22 @@ int copy_attr(hid_t loc_in,
             }
             if(H5Aread(attr_id, wtype_id, buf) < 0)
                 goto error;
-
-            /*-------------------------------------------------------------------------
-            * copy
-            *-------------------------------------------------------------------------
-            */
-
             if((attr_out = H5Acreate2(loc_out, name, wtype_id, space_id, H5P_DEFAULT, H5P_DEFAULT)) < 0)
                 goto error;
             if(H5Awrite(attr_out, wtype_id, buf) < 0)
                 goto error;
-
-            /*close*/
             if(H5Aclose(attr_out) < 0)
                 goto error;
-
-
             if(buf)
                 free(buf);
 
-        } /*H5T_REFERENCE*/
-
-
-        /*-------------------------------------------------------------------------
-        * close
-        *-------------------------------------------------------------------------
-        */
+        }
 
         if (H5Tclose(ftype_id) < 0) goto error;
         if (H5Tclose(wtype_id) < 0) goto error;
         if (H5Sclose(space_id) < 0) goto error;
         if (H5Aclose(attr_id) < 0) goto error;
-
-    } /* u */
-
-
+    }
     return 0;
 
     error:
@@ -1350,75 +1079,43 @@ int copy_attr(hid_t loc_in,
     return -1;
 }
 
-
-
-
-int do_copy_refobjs(hid_t fidin,
-                    hid_t fidout,
-                    trav_table_t *travt,
-                    pack_opt_t *options) /* repack options */
+int do_copy_refobjs(hid_t fidin, hid_t fidout, trav_table_t *travt, pack_opt_t *options)
 {
-    hid_t     grp_in = (-1);          /* read group ID */
-    hid_t     grp_out = (-1);         /* write group ID */
-    hid_t     dset_in = (-1);         /* read dataset ID */
-    hid_t     dset_out = (-1);        /* write dataset ID */
-    hid_t     type_in = (-1);         /* named type ID */
-    hid_t     dcpl_id = (-1);         /* dataset creation property list ID */
-    hid_t     space_id = (-1);        /* space ID */
-    hid_t     ftype_id = (-1);        /* file data type ID */
-    hid_t     mtype_id = (-1);        /* memory data type ID */
-    size_t    msize;                  /* memory size of memory type */
-    hsize_t   nelmts;                 /* number of elements in dataset */
-    int       rank;                   /* rank of dataset */
-    hsize_t   dims[H5S_MAX_RANK];     /* dimensions of dataset */
+    hid_t     grp_in = (-1);
+    hid_t     grp_out = (-1);
+    hid_t     dset_in = (-1);
+    hid_t     dset_out = (-1);
+    hid_t     type_in = (-1);
+    hid_t     dcpl_id = (-1);
+    hid_t     space_id = (-1);
+    hid_t     ftype_id = (-1);
+    hid_t     mtype_id = (-1);
+    size_t    msize;
+    hsize_t   nelmts;
+    int       rank;
+    hsize_t   dims[H5S_MAX_RANK];
     unsigned int i, j;
     int       k;
-    named_dt_t *named_dt_head=NULL;   /* Pointer to the stack of named datatypes
-                                         copied */
+    named_dt_t *named_dt_head=NULL;
 
-    /*-------------------------------------------------------------------------
-    * browse
-    *-------------------------------------------------------------------------
-    */
     for(i = 0; i < travt->nobjs; i++) {
         switch(travt->objs[i].type)
         {
-            /*-------------------------------------------------------------------------
-            * H5TRAV_TYPE_GROUP
-            *-------------------------------------------------------------------------
-            */
             case H5TRAV_TYPE_GROUP:
-                /*-------------------------------------------------------------------------
-                * copy referenced objects in attributes
-                *-------------------------------------------------------------------------
-                */
                 if((grp_out = H5Gopen2(fidout, travt->objs[i].name, H5P_DEFAULT)) < 0)
                     goto error;
-
                 if((grp_in = H5Gopen2(fidin, travt->objs[i].name, H5P_DEFAULT)) < 0)
                     goto error;
-
                 if(copy_refs_attr(grp_in, grp_out, options, travt, fidout) < 0)
                     goto error;
-
                 if(H5Gclose(grp_out) < 0)
                     goto error;
                 if(H5Gclose(grp_in) < 0)
                     goto error;
-
-                /*-------------------------------------------------------------------------
-                * check for hard links
-                *-------------------------------------------------------------------------
-                */
                 if(travt->objs[i].nlinks)
                     for(j = 0; j < travt->objs[i].nlinks; j++)
                         H5Lcreate_hard(fidout, travt->objs[i].name, H5L_SAME_LOC, travt->objs[i].links[j].new_name, H5P_DEFAULT, H5P_DEFAULT);
                 break;
-
-                /*-------------------------------------------------------------------------
-                * H5TRAV_TYPE_DATASET
-                *-------------------------------------------------------------------------
-                */
             case H5TRAV_TYPE_DATASET:
                 if((dset_in = H5Dopen2(fidin, travt->objs[i].name, H5P_DEFAULT)) < 0)
                     goto error;
@@ -1438,21 +1135,17 @@ int do_copy_refobjs(hid_t fidin,
 
                 if((mtype_id = h5tools_get_native_type(ftype_id)) < 0)
                     goto error;
-
                 if((msize = H5Tget_size(mtype_id)) == 0)
                     goto error;
 
-
                 if(h5tools_canreadf(NULL, dcpl_id) == 1) {
                     dset_out = FAIL;
-
                     if(H5Tequal(mtype_id, H5T_STD_REF_OBJ)) {
                         hid_t            refobj_id;
-                        hobj_ref_t       *refbuf = NULL; /* buffer for object references */
+                        hobj_ref_t       *refbuf = NULL;
                         hobj_ref_t       *buf = NULL;
                         const char*      refname;
                         unsigned         u;
-
 
                         if(nelmts) {
                             buf = (hobj_ref_t *)malloc((unsigned)(nelmts * msize));
@@ -1474,17 +1167,14 @@ int do_copy_refobjs(hid_t fidin,
                                             continue;
                                     } H5E_END_TRY;
 
-                                /* get the name. a valid name could only occur
-                                 * in the second traversal of the file
-                                 */
                                 if((refname = MapIdToName(refobj_id, travt)) != NULL) {
                                     /* create the reference, -1 parameter for objects */
                                     if(H5Rcreate(&refbuf[u], fidout, refname, H5R_OBJECT, -1) < 0)
                                         goto error;
-                                } /*refname*/
+                                }
                                 H5Oclose(refobj_id);
-                            } /* u */
-                        } /*nelmts*/
+                            }
+                        }
 
                         if((dset_out = H5Dcreate2(fidout, travt->objs[i].name, mtype_id, space_id, H5P_DEFAULT, dcpl_id, H5P_DEFAULT)) < 0)
                             goto error;
@@ -1499,8 +1189,7 @@ int do_copy_refobjs(hid_t fidin,
 
                         if(copy_attr(dset_in, dset_out, &named_dt_head, travt, options) < 0)
                             goto error;
-                    } /*H5T_STD_REF_OBJ*/
-
+                    }
                     else if(H5Tequal(mtype_id, H5T_STD_REF_DSETREG))
                     {
                         hid_t            refobj_id;
@@ -1522,7 +1211,7 @@ int do_copy_refobjs(hid_t fidin,
                             if(refbuf == NULL) {
                                 printf("cannot allocate memory\n");
                                 goto error;
-                            } /* end if */
+                            }
 
                             for(u = 0; u < nelmts; u++) {
                                 H5E_BEGIN_TRY {
@@ -1530,45 +1219,37 @@ int do_copy_refobjs(hid_t fidin,
                                             continue;
                                     } H5E_END_TRY;
 
-                                /* get the name. a valid name could only occur
-                                 * in the second traversal of the file
-                                 */
                                 if((refname = MapIdToName(refobj_id, travt)) != NULL) {
-                                    hid_t region_id;    /* region id of the referenced dataset */
+                                    hid_t region_id;
 
                                     if((region_id = H5Rget_region(dset_in, H5R_DATASET_REGION, &buf[u])) < 0)
                                         goto error;
-
-                                    /* create the reference, we need the space_id */
                                     if(H5Rcreate(&refbuf[u], fidout, refname, H5R_DATASET_REGION, region_id) < 0)
                                         goto error;
                                     if(H5Sclose(region_id) < 0)
                                         goto error;
 
-                                } /*refname*/
+                                }
                                 H5Oclose(refobj_id);
-                            } /* u */
-                        } /*nelmts*/
+                            }
+                        }
 
                         if((dset_out = H5Dcreate2(fidout, travt->objs[i].name, mtype_id, space_id, H5P_DEFAULT, dcpl_id, H5P_DEFAULT)) < 0)
                             goto error;
                         if(nelmts)
                             if(H5Dwrite(dset_out, mtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, refbuf) < 0)
                                 goto error;
-
                         if(buf)
                             free(buf);
                         if(refbuf)
                             free(refbuf);
-
                         if(copy_attr(dset_in, dset_out, &named_dt_head, travt, options) < 0)
                             goto error;
-                    } /* H5T_STD_REF_DSETREG */
-
+                    }
                     else {
                         if((dset_out = H5Dopen2(fidout, travt->objs[i].name, H5P_DEFAULT)) < 0)
                             goto error;
-                    } /* end else */
+                    }
 
                     if(copy_refs_attr(dset_in, dset_out, options, travt, fidout) < 0)
                         goto error;
@@ -1579,8 +1260,7 @@ int do_copy_refobjs(hid_t fidin,
 
                     if(H5Dclose(dset_out) < 0)
                         goto error;
-                } /*can_read*/
-
+                }
                 if(H5Tclose(ftype_id) < 0)
                     goto error;
                 if(H5Tclose(mtype_id) < 0)
@@ -1599,22 +1279,18 @@ int do_copy_refobjs(hid_t fidin,
                 if(H5Tclose(type_in) < 0)
                     goto error;
                 break;
-
             case H5TRAV_TYPE_LINK:
                 /*nothing to do */
                 break;
-
             case H5TRAV_TYPE_UNKNOWN:
             case H5TRAV_TYPE_UDLINK:
                 goto error;
-
             default:
                 break;
-        } /* end switch */
-    } /* end for */
+        }
+    }
 
     named_datatype_free(&named_dt_head, 0);
-
     return 0;
 
     error:
@@ -1636,22 +1312,18 @@ int do_copy_refobjs(hid_t fidin,
 
 static int   do_copy_objects(H5File infile,hid_t fidout,trav_table_t *travt,pack_opt_t *options);
 
-int copy_objects(H5File file,
-                 const char* fnameout,
-                 pack_opt_t *options)
+int copy_objects(H5File file, const char* fnameout, pack_opt_t *options)
 {
     hid_t         fidin;
     hid_t         fidout = -1;
     trav_table_t  *travt = NULL;
-    hsize_t       ub_size = 0;        /* size of user block */
-    hid_t         fcpl = H5P_DEFAULT; /* file creation property list ID */
-    hid_t         fapl = H5P_DEFAULT; /* file access property list ID */
+    hsize_t       ub_size = 0;
+    hid_t         fcpl = H5P_DEFAULT;
+    hid_t         fapl = H5P_DEFAULT;
 
     fidin = file.getId();
-
-    /* get user block size */
     {
-        hid_t fcpl_in; /* file creation property list ID for input file */
+        hid_t fcpl_in;
 
         if((fcpl_in = H5Fget_create_plist(fidin)) < 0)
         {
@@ -1678,10 +1350,8 @@ int copy_objects(H5File file,
         goto out;
     }
 
-    /* init table */
     trav_table_init(&travt);
 
-    /* get the list of objects in the file */
     if(h5trav_gettable(fidin, travt) < 0)
         goto out;
 
@@ -1690,19 +1360,15 @@ int copy_objects(H5File file,
 
     if(fapl > 0)
         H5Pclose(fapl);
-
     if(fcpl > 0)
         H5Pclose(fcpl);
 
     H5Fclose(fidin);
     H5Fclose(fidout);
-
-    /* free table */
     trav_table_free(travt);
     travt = NULL;
 
     return 0;
-
 
     out:
     H5E_BEGIN_TRY
@@ -1718,39 +1384,36 @@ int copy_objects(H5File file,
     return -1;
 }
 
-int do_copy_objects(H5File infile,
-                    hid_t fidout,
-                    trav_table_t *travt,
-                    pack_opt_t *options) /* repack options */
+int do_copy_objects(H5File infile, hid_t fidout, trav_table_t *travt, pack_opt_t *options)
 {
-    hid_t    grp_in=-1;         /* group ID */
-    hid_t    grp_out=-1;        /* group ID */
-    hid_t    dset_in=-1;        /* read dataset ID */
-    hid_t    dset_out=-1;       /* write dataset ID */
-    hid_t    gcpl_in=-1;        /* group creation property list */
-    hid_t    gcpl_out=-1;       /* group creation property list */
-    hid_t    type_in=-1;        /* named type ID */
-    hid_t    type_out=-1;       /* named type ID */
-    hid_t    dcpl_id=-1;        /* dataset creation property list ID */
-    hid_t    dcpl_out=-1;       /* dataset creation property list ID */
-    hid_t    f_space_id=-1;     /* file space ID */
-    hid_t    ftype_id=-1;       /* file type ID */
-    hid_t    wtype_id=-1;       /* read/write type ID */
+    hid_t    grp_in=-1;
+    hid_t    grp_out=-1;
+    hid_t    dset_in=-1;
+    hid_t    dset_out=-1;
+    hid_t    gcpl_in=-1;
+    hid_t    gcpl_out=-1;
+    hid_t    type_in=-1;
+    hid_t    type_out=-1;
+    hid_t    dcpl_id=-1;
+    hid_t    dcpl_out=-1;
+    hid_t    f_space_id=-1;
+    hid_t    ftype_id=-1;
+    hid_t    wtype_id=-1;
     hid_t    fidin = infile.getId();
-    named_dt_t *named_dt_head=NULL; /* Pointer to the stack of named datatypes copied */
-    size_t   msize;             /* size of type */
-    hsize_t  nelmts;            /* number of elements in dataset */
-    int      rank;              /* rank of dataset */
-    hsize_t  dims[H5S_MAX_RANK];/* dimensions of dataset */
-    hsize_t  dsize_in;          /* input dataset size before filter */
-    hsize_t  dsize_out;         /* output dataset size after filter */
-    int      apply_s;           /* flag for apply filter to small dataset sizes */
-    int      apply_f;           /* flag for apply filter to return error on H5Dcreate */
-    void     *buf=NULL;         /* buffer for raw data */
-    void     *sm_buf=NULL;      /* buffer for raw data */
-    int      has_filter;        /* current object has a filter */
-    int      req_filter;        /* there was a request for a filter */
-    unsigned crt_order_flags;   /* group creation order flag */
+    named_dt_t *named_dt_head=NULL;
+    size_t   msize;
+    hsize_t  nelmts;
+    int      rank;
+    hsize_t  dims[H5S_MAX_RANK];
+    hsize_t  dsize_in;
+    hsize_t  dsize_out;
+    int      apply_s;
+    int      apply_f;
+    void     *buf=NULL;
+    void     *sm_buf=NULL;
+    int      has_filter;
+    int      req_filter;
+    unsigned crt_order_flags;
     unsigned i;
     unsigned u;
     int      is_ref=0;
@@ -1758,46 +1421,25 @@ int do_copy_objects(H5File infile,
 
     for ( i = 0; i < travt->nobjs; i++)
     {
-
         buf = NULL;
         switch ( travt->objs[i].type )
         {
-
             case H5TRAV_TYPE_UNKNOWN:
                 assert(0);
                 break;
-                /*-------------------------------------------------------------------------
-                * H5TRAV_TYPE_GROUP
-                *-------------------------------------------------------------------------
-                */
             case H5TRAV_TYPE_GROUP:
-
-               /* open input group */
                 if ((grp_in = H5Gopen2(fidin, travt->objs[i].name, H5P_DEFAULT)) < 0)
                     goto error;
-
-                /* get input group creation property list */
                 if ((gcpl_in = H5Gget_create_plist(grp_in)) < 0)
                     goto error;
-
-                /* query and set the group creation properties */
                 if (H5Pget_link_creation_order(gcpl_in, &crt_order_flags) < 0)
                     goto error;
-
-                /* set up group creation property list */
                 if ((gcpl_out = H5Pcreate(H5P_GROUP_CREATE)) < 0)
                     goto error;
-
                 if (H5Pset_link_creation_order(gcpl_out, crt_order_flags) < 0)
                     goto error;
 
-
-                /*-------------------------------------------------------------------------
-                * the root is a special case, we get an ID for the root group
-                * and copy its attributes using that ID
-                *-------------------------------------------------------------------------
-                */
-                if(strcmp(travt->objs[i].name, "/") == 0)
+                if (strcmp(travt->objs[i].name, "/") == 0)
                 {
                     if ((grp_out = H5Gopen2(fidout, "/", H5P_DEFAULT)) < 0)
                         goto error;
@@ -1805,22 +1447,17 @@ int do_copy_objects(H5File infile,
 
                 else
                 {
-
                     if (options->grp_compact>0 || options->grp_indexed>0)
                     {
                         if(H5Pset_link_phase_change(gcpl_out, (unsigned)options->grp_compact, (unsigned)options->grp_indexed) < 0)
                             goto error;
                     }
-
                     if((grp_out = H5Gcreate2(fidout, travt->objs[i].name, H5P_DEFAULT, gcpl_out, H5P_DEFAULT)) < 0)
                         goto error;
 
                 }
-
                 if(copy_attr(grp_in, grp_out, &named_dt_head, travt, options) < 0)
                     goto error;
-
-
                 if(H5Pclose(gcpl_out) < 0)
                     goto error;
                 if(H5Pclose(gcpl_in) < 0)
@@ -1831,21 +1468,14 @@ int do_copy_objects(H5File infile,
                     goto error;
 
                 break;
-
-                /*-------------------------------------------------------------------------
-                * H5TRAV_TYPE_DATASET
-                *-------------------------------------------------------------------------
-                */
             case H5TRAV_TYPE_DATASET:
 
                 has_filter = 0;
                 req_filter = 0;
 
-                /* check if global filters were requested */
                 if ( options->n_filter_g )
                     req_filter = 1;
 
-                /* check if filters were requested for individual objects */
                 for (u = 0; u < options->op_tbl->nelems; u++) {
 
                     if (strcmp(travt->objs[i].name, options->op_tbl->objs[u].path) == 0) {
@@ -1855,15 +1485,12 @@ int do_copy_objects(H5File infile,
                     }
                 }
 
-                /* early detection of references */
                 if((dset_in = H5Dopen2(fidin, travt->objs[i].name, H5P_DEFAULT)) < 0)
                     goto error;
                 if((ftype_id = H5Dget_type(dset_in)) < 0)
                     goto error;
                 if(H5T_REFERENCE == H5Tget_class(ftype_id))
                     is_ref = 1;
-
-                /* Check if the datatype is committed */
                 if((is_named = H5Tcommitted(ftype_id)) < 0)
                     goto error;
                 if(is_named)
@@ -1882,7 +1509,7 @@ int do_copy_objects(H5File infile,
                      is_named)
                 {
 
-                    int      j;
+                    int j;
 
                     if((dset_in = H5Dopen2(fidin, travt->objs[i].name, H5P_DEFAULT)) < 0)
                         goto error;
@@ -1905,7 +1532,6 @@ int do_copy_objects(H5File infile,
                         nelmts *= dims[j];
                     }
 
-                    /* wtype_id will have already been set if using a named dtype */
                     if(!is_named) {
                         if(options->use_native == 1)
                             wtype_id = h5tools_get_native_type(ftype_id);
@@ -1923,7 +1549,6 @@ int do_copy_objects(H5File infile,
 
                         if (H5T_REFERENCE!=H5Tget_class(wtype_id))
                         {
-                            /* get the storage size of the input dataset */
                             dsize_in=H5Dget_storage_size(dset_in);
 
                             if (options->layout_g != H5D_COMPACT)
@@ -1932,16 +1557,9 @@ int do_copy_objects(H5File infile,
                                     apply_s=0;
                             }
 
-                            /* apply the filter */
                             if (apply_s)
                             {
-                                if (apply_filters(travt->objs[i].name,
-                                                  rank,
-                                                  dims,
-                                                  msize,
-                                                  dcpl_out,
-                                                  options,
-                                                  &has_filter) < 0)
+                                if (apply_filters(travt->objs[i].name, rank, dims, msize, dcpl_out, options, &has_filter) < 0)
                                     goto error;
                             }
 
@@ -1975,13 +1593,8 @@ int do_copy_objects(H5File infile,
                             H5Dclose(dset_out);
 
                         }/*!H5T_REFERENCE*/
-                    }/*h5tools_canreadf*/
+                    }
 
-
-                    /*-------------------------------------------------------------------------
-                    * close
-                    *-------------------------------------------------------------------------
-                    */
                     if (H5Tclose(ftype_id) < 0)
                         goto error;
                     if (H5Tclose(wtype_id) < 0)
@@ -1994,43 +1607,22 @@ int do_copy_objects(H5File infile,
                         goto error;
                     if (H5Dclose(dset_in) < 0)
                         goto error;
-
                 }
-
                 else
                 {
-                    hid_t        pid;
+                    hid_t pid;
 
-                    /* create property to pass copy options */
                     if ( (pid = H5Pcreate(H5P_OBJECT_COPY)) < 0)
                         goto error;
 
-                    /* set options for object copy */
                     if(H5Pset_copy_object(pid, H5O_COPY_WITHOUT_ATTR_FLAG) < 0)
                         goto error;
 
-                    /*-------------------------------------------------------------------------
-                    * do the copy
-                    *-------------------------------------------------------------------------
-                    */
-
-                    if(H5Ocopy(fidin,          /* Source file or group identifier */
-                               travt->objs[i].name,       /* Name of the source object to be copied */
-                               fidout,                    /* Destination file or group identifier  */
-                               travt->objs[i].name,       /* Name of the destination object  */
-                               pid,                       /* Properties which apply to the copy   */
-                               H5P_DEFAULT) < 0)            /* Properties which apply to the new hard link */
+                    if(H5Ocopy(fidin, travt->objs[i].name, fidout, travt->objs[i].name, pid, H5P_DEFAULT) < 0)            /* Properties which apply to the new hard link */
                         goto error;
 
-                    /* close property */
                     if(H5Pclose(pid) < 0)
                         goto error;
-
-
-                    /*-------------------------------------------------------------------------
-                    * copy attrs manually
-                    *-------------------------------------------------------------------------
-                    */
                     if((dset_in = H5Dopen2(fidin, travt->objs[i].name, H5P_DEFAULT)) < 0)
                         goto error;
                     if((dset_out = H5Dopen2(fidout, travt->objs[i].name, H5P_DEFAULT)) < 0)
@@ -2041,37 +1633,20 @@ int do_copy_objects(H5File infile,
                         goto error;
                     if(H5Dclose(dset_out) < 0)
                         goto error;
-
-
-
-                } /* end do we have request for filter/chunking */
-
-
+                }
                 break;
 
-                /*-------------------------------------------------------------------------
-                * H5TRAV_TYPE_NAMED_DATATYPE
-                *-------------------------------------------------------------------------
-                */
             case H5TRAV_TYPE_NAMED_DATATYPE:
 
                 if((type_in = H5Topen2(fidin, travt->objs[i].name, H5P_DEFAULT)) < 0)
                     goto error;
 
-                /* Copy the datatype anonymously */
-                if((type_out = copy_named_datatype(type_in, fidout, &named_dt_head,
-                                                   travt, options)) < 0)
+                if((type_out = copy_named_datatype(type_in, fidout, &named_dt_head, travt, options)) < 0)
                     goto error;
 
-                /* Link in to group structure */
-                if(H5Lcreate_hard(type_out, ".", fidout, travt->objs[i].name,
-                                  H5P_DEFAULT, H5P_DEFAULT) < 0)
+                if(H5Lcreate_hard(type_out, ".", fidout, travt->objs[i].name, H5P_DEFAULT, H5P_DEFAULT) < 0)
                     goto error;
 
-                /*-------------------------------------------------------------------------
-                * copy attrs
-                *-------------------------------------------------------------------------
-                */
                 if(copy_attr(type_in, type_out, &named_dt_head, travt, options) < 0)
                     goto error;
 
@@ -2079,8 +1654,6 @@ int do_copy_objects(H5File infile,
                     goto error;
                 if(H5Tclose(type_out) < 0)
                     goto error;
-
-
 
                 break;
 
@@ -2096,7 +1669,7 @@ int do_copy_objects(H5File infile,
 
             default:
                 goto error;
-        } /* switch */
+        }
 
         /* free */
         if (buf!=NULL)
@@ -2107,7 +1680,6 @@ int do_copy_objects(H5File infile,
 
     } /* i */
 
-    /* Finalize (link) the stack of named datatypes (if any) */
     named_datatype_free(&named_dt_head, 0);
 
     return 0;
