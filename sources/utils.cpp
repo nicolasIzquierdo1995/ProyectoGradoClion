@@ -2,31 +2,12 @@
 #include <sys/stat.h>
 #include <iostream>
 #include <cmath>
+
 using namespace std;
 using namespace H5;
 using namespace utils;
 
-DataSet* Utils::GetDataset(H5File* file, string path, string dataSetGrandParentName, string dataSetName)
-{
-    try {
-        Group group = file->openGroup(path);
-        hsize_t objCount =  group.getNumObjs() ;
-        string parentName;
-        for (int i = 0; i < objCount; i++){
-            string objectName = group.getObjnameByIdx(i);
-            if (objectName.find(dataSetGrandParentName) == 0){
-                parentName = objectName;
-                break;
-            }
-        }
-        DataSet* dataset = new DataSet(file->openDataSet(path + "/" + parentName + "/" + dataSetName));
-        return dataset;
-    }
-    catch(Exception ex) {
-        return NULL;
-    }
-}
-
+//devuelve el tipo de dato de los eventos
 CompType Utils::getEventDataType() {
     CompType eventDataType(sizeof(eventData));
     eventDataType.insertMember("start", HOFFSET(eventData,start), PredType::NATIVE_INT);
@@ -36,6 +17,7 @@ CompType Utils::getEventDataType() {
     return eventDataType;
 }
 
+//devuelve el tipo de dato de los eventos comprimidos
 CompType Utils::getCompressedEventDataType() {
     CompType compressedEventDataType(sizeof(compressedEventData));
     compressedEventDataType.insertMember("skip", HOFFSET(compressedEventData,skip), PredType::NATIVE_INT8);
@@ -45,15 +27,8 @@ CompType Utils::getCompressedEventDataType() {
     return compressedEventDataType;
 }
 
-PredType Utils::getHuffmanSignalDataType(){
-    return PredType::NATIVE_INT16;
-}
-
-PredType Utils::getCompressedSignalDataType(){
-    return PredType::NATIVE_INT16;
-}
-
-PredType Utils::getDecompressedSignalDataType(){
+//devuelve el tipo de dato de los signal
+PredType Utils::getSignalDataType(){
     return PredType::NATIVE_INT16;
 }
 
@@ -65,6 +40,7 @@ bool Utils::replaceString(std::string& str, const std::string& from, const std::
     return true;
 }
 
+//crea un propertylist con compresion szip con un chunk de tamano fijo
 DSetCreatPropList* Utils::createCompressedSetCreatPropList(int size) {
     hsize_t chunk_dims[1] = { (hsize_t)size };
     DSetCreatPropList* creatPropList = new DSetCreatPropList;
@@ -73,6 +49,7 @@ DSetCreatPropList* Utils::createCompressedSetCreatPropList(int size) {
     return creatPropList;
 }
 
+//crea un propertylist con compresion gzip 3 con un chunk de tamano fijo
 DSetCreatPropList *Utils::createDecompressedSetCreatPropList(int size) {
     hsize_t chunk_dims[1] = { (hsize_t)size };
     DSetCreatPropList* creatPropList = new DSetCreatPropList;
@@ -81,6 +58,7 @@ DSetCreatPropList *Utils::createDecompressedSetCreatPropList(int size) {
     return creatPropList;
 }
 
+//crea un propertylist con compresion szip con un chunk del mismo tamano que el del dataset de entrada
 DSetCreatPropList* Utils::createCompressedSetCreatPropList(DataSet* dSet) {
     hsize_t chunk_dims[1];
     dSet->getCreatePlist().getChunk(1, chunk_dims);
@@ -91,7 +69,6 @@ DSetCreatPropList* Utils::createCompressedSetCreatPropList(DataSet* dSet) {
 }
 
 void Utils::copyFile(string originalName, string copyName){
-
         FILE *src1;
         FILE *final;
 
@@ -112,6 +89,7 @@ void Utils::copyFile(string originalName, string copyName){
         chmod(copyName.c_str(), st.st_mode);
 }
 
+//deslinkea recursivamente todos los datasets de logs
 void Utils::unlinkLogs(H5File* file,string path) {
     Group group = file->openGroup(path);
     hsize_t objCount =  group.getNumObjs() ;
@@ -126,17 +104,26 @@ void Utils::unlinkLogs(H5File* file,string path) {
     }
 }
 
-
+//devuelve una lista con todos los datasets de reads, tanto para multireads como para el formato viejo
 vector<DataSet>* Utils::listDatasets(string name,H5File* file,string path){
     vector<DataSet>* dataSets = new vector<DataSet>();
     Group group = file->openGroup(path);
     hsize_t objCount =  group.getNumObjs();
     for (int i = 0; i < objCount; i++){
         string objectName = group.getObjnameByIdx(i);
+
         if (objectName.find("read", 0) == 0 ){
+            //formato mutli-read
             dataSets->push_back(group.openDataSet(path+objectName + "/Raw/Signal"));
         }else if(objectName.find("Raw",0) == 0){
-            dataSets->push_back(group.openDataSet(path+objectName + "/Reads/Read_627/Signal"));
+            //formato viejo
+            Group readsGroup = group.openGroup(path + objectName + "/Reads");
+            for(int j = 0; j< readsGroup.getNumObjs();j++){
+                string groupName = group.getObjnameByIdx(j);
+                if(groupName.find("Read_",0) == 0){
+                    dataSets->push_back(group.openDataSet(path+objectName + "/Reads/" + groupName + "/Signal"));
+                }
+            }
         }
     }
     return dataSets;

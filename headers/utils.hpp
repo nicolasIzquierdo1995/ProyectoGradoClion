@@ -3,7 +3,10 @@
 #include <vector>
 #include "H5Cpp.h"
 
+#ifndef H5_NO_NAMESPACE
 using namespace H5;
+#endif
+
 using namespace std;
 namespace utils{
 
@@ -23,19 +26,19 @@ namespace utils{
 
     class Utils {
     public:
-        static DataSet* GetDataset(H5File* file, string path, string dataSetGrandParentName, string dataSetName);
         static CompType getEventDataType();
         static CompType getCompressedEventDataType();
-        static bool replaceString(string& str, const string& from, const string& to);
+        static PredType getSignalDataType();
+
+        static vector<DataSet>* listDatasets(string name,H5File* file,string path);
+
         static DSetCreatPropList* createCompressedSetCreatPropList(int size);
         static DSetCreatPropList* createDecompressedSetCreatPropList(int size);
         static DSetCreatPropList* createCompressedSetCreatPropList(DataSet* dset);
-        static PredType getHuffmanSignalDataType();
-        static PredType getCompressedSignalDataType();
-        static PredType getDecompressedSignalDataType();
+
         static void copyFile(string originalName, string copyName);
+        static bool replaceString(string& str, const string& from, const string& to);
         static void unlinkLogs(H5File* file,string path);
-        static vector<DataSet>* listDatasets(string name,H5File* file,string path);
         static int stringToInt(string bitString);
     };
 }

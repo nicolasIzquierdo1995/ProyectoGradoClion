@@ -2,11 +2,15 @@
 #include <iostream>
 #include <sys/stat.h>
 #include "../headers/utils.hpp"
+
+using namespace H5;
 using namespace std;
 using namespace inputOutput;
-using namespace H5;
 using namespace utils;
 
+/*******************************************AUXILIARES****************************************/
+
+//Verifica que los argumentos sean validos
 static bool VerifyArguments(int argc, char *argv[]){
     if (argc < 2 || argc > 3){
       return false;
@@ -18,11 +22,10 @@ static bool VerifyArguments(int argc, char *argv[]){
             return false;
         }
     }
-
     return true;
 }
 
-
+//Crea error por defecto
 static Arguments* CreateErrorArgument(){
     Arguments arg;
     Arguments * parg;
@@ -31,6 +34,8 @@ static Arguments* CreateErrorArgument(){
     parg->errorMessage = "Error en argumentos";
     return parg;
 }
+
+/*******************************************METODOS****************************************/
 
 Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     if (!VerifyArguments(argc,argv)){
@@ -44,6 +49,7 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     struct stat path_stat;
     stat(argv[1], &path_stat);
 
+    //se crea la copia del archivo sobre la que se va a trabajar
     string fileName = argv[1];
     Utils::replaceString(fileName, ".fast5", "_copy.fast5");
     Utils::copyFile(argv[1], fileName);
@@ -52,7 +58,7 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
     arg->file = file;
     arg->fileName = fileName;
 
-
+    //se carga el nivel de compresion desde entrada o desde el atributo
     if (arg->compress)
         arg->compressionLevel = atoi(argv[2]);
     else {
@@ -67,6 +73,9 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
             return  CreateErrorArgument();
 
     }
-
     return arg;
+}
+
+void InputOutput::PrintOutput(string msg) {
+    cout<<msg<<endl;
 }

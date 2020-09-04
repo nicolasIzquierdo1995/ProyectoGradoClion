@@ -14,12 +14,13 @@ using namespace boost::filesystem;
 
 int main (int argc, char* argv[])
 {
+    //inicia timer de compresion
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
 
     Arguments* args = InputOutput::ProcessArguments(argc, argv);
     if (!args->isOk){
         cout << args->errorMessage;
-        return -1;
+        exit(1) ;
     }
 
     Compresser* comp = new Compresser();
@@ -29,10 +30,14 @@ int main (int argc, char* argv[])
     else {
         comp->DeCompressFile(args->file, args->compressionLevel);
     }
+
+    //se elimina el archivo original
     remove(args->fileName);
 
+    //se termina el timer
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
-    cout << "Time: " << chrono::duration_cast<chrono::seconds>(end - begin).count() << " seconds";
-    return 0;
+
+    cout << "Time to compress: " << chrono::duration_cast<chrono::seconds>(end - begin).count() << " seconds";
+    exit(0);
 }
 
