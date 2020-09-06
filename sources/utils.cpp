@@ -2,6 +2,8 @@
 #include <sys/stat.h>
 #include <iostream>
 #include <cmath>
+#include <string>
+#include <algorithm>
 
 using namespace std;
 using namespace H5;
@@ -140,4 +142,16 @@ int Utils::stringToInt(string bitString) {
     return ret;
 }
 
+
+string Utils::removeChar(string s, char c){
+    s.erase(std::remove(s.begin(),s.end(),c),s.end());
+    return s;
+}
+
+int Utils::getDatasetSize(DataSet* dataSet){
+    DataSpace signalDataSpace = dataSet->getSpace();
+    hsize_t signalDims[signalDataSpace.getSimpleExtentNdims()];
+    signalDataSpace.getSimpleExtentDims(signalDims);
+    return (int)(signalDims[0]);
+}
 

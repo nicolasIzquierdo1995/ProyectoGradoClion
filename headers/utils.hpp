@@ -40,5 +40,7 @@ namespace utils{
         static bool replaceString(string& str, const string& from, const string& to);
         static void unlinkLogs(H5File* file,string path);
         static int stringToInt(string bitString);
+        static string removeChar(string s, char c);
+        static int getDatasetSize(DataSet* dataSet);
     };
 }
