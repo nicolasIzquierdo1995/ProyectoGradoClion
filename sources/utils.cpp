@@ -99,8 +99,8 @@ void Utils::unlinkLogs(H5File* file,string path) {
         string objectName = group.getObjnameByIdx(i);
         if (objectName.find("Log") == 0){
             file->unlink(path + objectName);
-            break;
-        }else if(group.getObjTypeByIdx(i) == H5G_GROUP){
+        }
+        else if (group.getObjTypeByIdx(i) == H5G_GROUP){
             unlinkLogs(file,path + objectName + "/");
         }
     }
@@ -149,9 +149,21 @@ string Utils::removeChar(string s, char c){
 }
 
 int Utils::getDatasetSize(DataSet* dataSet){
-    DataSpace signalDataSpace = dataSet->getSpace();
-    hsize_t signalDims[signalDataSpace.getSimpleExtentNdims()];
-    signalDataSpace.getSimpleExtentDims(signalDims);
-    return (int)(signalDims[0]);
+    DataSpace dataSpace = dataSet->getSpace();
+    hsize_t dims[dataSpace.getSimpleExtentNdims()];
+    dataSpace.getSimpleExtentDims(dims);
+    return (int)(dims[0]);
+}
+
+int Utils::getDatasetSize(DataSpace* dataSpace){
+    hsize_t dims[dataSpace->getSimpleExtentNdims()];
+    dataSpace->getSimpleExtentDims(dims);
+    return (int)(dims[0]);
+}
+
+DataSpace Utils::getDataspace(int size, long long unsigned int maxSize){
+    hsize_t chunk_dims1[1] = { (hsize_t)size };
+    hsize_t chunk_dims2[1] = { (hsize_t)maxSize };
+    return  DataSpace(1, chunk_dims1, chunk_dims2);
 }
 

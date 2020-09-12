@@ -42,5 +42,7 @@ namespace utils{
         static int stringToInt(string bitString);
         static string removeChar(string s, char c);
         static int getDatasetSize(DataSet* dataSet);
+        static int getDatasetSize(DataSpace* dataSpace);
+        static DataSpace getDataspace(int size, long long unsigned int maxSize);
     };
 }
