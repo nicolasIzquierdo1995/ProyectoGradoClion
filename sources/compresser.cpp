@@ -35,7 +35,7 @@ Compresser::Compresser(){
 }
 
 // guarda los atributos correspondientes en el archivo
-void saveAttributes(string fileName){
+void saveAttributes(string fileName, int compressionLvl){
     if(!globalAttributes.empty()){
         map<string,int>::iterator it = globalAttributes.begin();
         H5File file(fileName, H5F_ACC_RDWR);
@@ -50,10 +50,12 @@ void saveAttributes(string fileName){
             it++;
         }
 
-        DataSpace dataSpace = Utils::getDataspace(firstReadsCount + 1, firstReadsCount + 1);
-        DSetCreatPropList *creatPropList = Utils::createCompressedSetCreatPropList(firstReadsCount + 1);
-        DataSet * newSignalsDataset = new DataSet(file.createDataSet("first_reads", PredType::NATIVE_UINT16, dataSpace, *creatPropList));
-        newSignalsDataset->write(firstReads, PredType::NATIVE_UINT16, dataSpace, dataSpace);
+        if(compressionLvl == 3 || compressionLvl  == 4){
+            DataSpace dataSpace = Utils::getDataspace(firstReadsCount + 1, firstReadsCount + 1);
+            DSetCreatPropList *creatPropList = Utils::createCompressedSetCreatPropList(firstReadsCount + 1);
+            DataSet * newSignalsDataset = new DataSet(file.createDataSet("first_reads", PredType::NATIVE_UINT16, dataSpace, *creatPropList));
+            newSignalsDataset->write(firstReads, PredType::NATIVE_UINT16, dataSpace, dataSpace);
+        }
     }
 }
 
@@ -189,7 +191,7 @@ void generateCsvFromExample(H5File* file) {
     }
 
     ofstream myFile;
-    myFile.open ("archivo2.csv");
+    myFile.open ("../Files/stats.csv");
 
     for(it2 = readsMap.begin(); it2 != readsMap.end(); ++it2) {
         myFile<< it2->first << "," << it2->second << endl;
@@ -354,6 +356,39 @@ h5Array<int16_t> mapSignalBufferC(h5Array<int16_t> buffer) {
 
     return h5Array<int16_t>(intArray, count);
 }
+
+
+//Comprime usando szip
+void szipCompression(H5File* file, string newFileName) {
+    h5Array<DataSet> signalDataSets = getDataSetList(file,"Signal");
+    string* signalDatasetNames = new string[signalDataSets.size];
+    h5Array<uint16_t>* compressedSignalsBuffers = new h5Array<uint16_t>[signalDataSets.size];
+
+    for (int i = 0; i < signalDataSets.size; i++){
+        DataSet currentDataset = signalDataSets.ptr[i];
+        DataSpace* currentDataSpace = new DataSpace (currentDataset.getSpace());
+        int signalsCount = Utils::getDatasetSize(&currentDataset);
+        uint16_t* signalsBuffer = new uint16_t[signalsCount];
+        currentDataset.read(signalsBuffer,Utils::getSignalDataType(),*currentDataSpace,*currentDataSpace);
+
+        signalDatasetNames[i] = currentDataset.getObjName();
+        compressedSignalsBuffers[i] = h5Array<uint16_t>(signalsBuffer,signalsCount);
+
+        file->unlink(currentDataset.getObjName().c_str());
+    }
+
+    h5repack::repack(file, newFileName, "9");
+    H5File newFile(newFileName, H5F_ACC_RDWR);
+
+    for (int i = 0; i < signalDataSets.size; i++){
+        int size = compressedSignalsBuffers[i].size;
+        DataSpace dataSpace = Utils::getDataspace(size, size);
+        DSetCreatPropList* creatPropList = Utils::createCompressedSetCreatPropList(size);
+        DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], PredType::NATIVE_UINT16, dataSpace, *creatPropList));
+        newSignalsDataset->write(compressedSignalsBuffers[i].ptr, PredType::NATIVE_UINT16, dataSpace, dataSpace);
+    }
+}
+
 
 // comprime eventos y reads de un archivo
 void compressEventsAndReads(H5File* file,string newFileName, bool useHuffman){
@@ -544,7 +579,7 @@ void Compresser::CompressFile(H5File* file, int compressionLevel){
     Utils::replaceString(compressedFileName, "_copy.fast5", "_repacked.fast5");
 
     //guarda nivel de compresion en atributo
-    if (compressionLevel > 0){
+    if (compressionLevel > 0 && compressionLevel < 9){
         globalAttributes.insert(pair<string,int>("compLevel",compressionLevel));
     }
 
@@ -553,19 +588,19 @@ void Compresser::CompressFile(H5File* file, int compressionLevel){
     } else if (compressionLevel == 1){
         h5repack::repack(file, compressedFileName, "9");
     } else if (compressionLevel == 2 ){
-        // agregar compresion solo szip
+        szipCompression(file,compressedFileName);
     } else if (compressionLevel == 3 || compressionLevel == 4) {
         readTreeFile();
         compressEventsAndReads(file,compressedFileName,compressionLevel == 4);
     } else if (compressionLevel == 5){
         removeLogs(file, compressedFileName);
-    } else if (compressionLevel >= 9){
+    } else if (compressionLevel == 9){
         generateHuffmanFromExample(file);
     } else if (compressionLevel == 10){
         generateCsvFromExample(file);
     }
 
-    saveAttributes(compressedFileName);
+    saveAttributes(compressedFileName,compressionLevel);
 }
 
 void Compresser::DeCompressFile(H5File* file, int compressionLevel){
@@ -583,6 +618,7 @@ void Compresser::DeCompressFile(H5File* file, int compressionLevel){
         deCompressEventsAndReads(file,deCompressedFileName,compressionLevel == 4);
     }
 }
+
 
 
 
