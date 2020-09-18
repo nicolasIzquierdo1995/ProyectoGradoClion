@@ -24,6 +24,12 @@ namespace utils{
         float stdv;
     } compressedEventData;
 
+    typedef struct signalAttributes {
+        double range;
+        double offset;
+        double digitisation;
+    } signalAttributes;
+
     class Utils {
     public:
         static CompType getEventDataType();
@@ -45,5 +51,7 @@ namespace utils{
         static int getDatasetSize(DataSet* dataSet);
         static int getDatasetSize(DataSpace* dataSpace);
         static DataSpace getDataspace(int size, long long unsigned int maxSize);
+
+        static signalAttributes getSignalAttributes(H5File* file,string dataSetName);
     };
 }

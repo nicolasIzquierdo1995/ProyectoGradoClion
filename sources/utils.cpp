@@ -172,3 +172,41 @@ DataSpace Utils::getDataspace(int size, long long unsigned int maxSize){
     return  DataSpace(1, chunk_dims1, chunk_dims2);
 }
 
+signalAttributes Utils::getSignalAttributes(H5File* file,string dataSetName) {
+    string channelName = dataSetName;
+    if(replaceString(channelName,"Raw/Signal","channel_id")){
+        Group group = file->openGroup(channelName);
+        if(group.attrExists("digitisation") && group.attrExists("offset") && group.attrExists("range")) {
+
+            double digitisation = 0.0;
+            Attribute digitAtt = group.openAttribute("digitisation");
+            DataType dt1 = digitAtt.getDataType();
+            digitAtt.read(dt1,&digitisation);
+            digitAtt.close();
+
+            double offset = 0;
+            Attribute offsetAtt = group.openAttribute("offset");
+            DataType dt2 = offsetAtt.getDataType();
+            offsetAtt.read(dt2,&offset);
+            offsetAtt.close();
+
+            double range = 0.0;
+            Attribute rangeAtt = group.openAttribute("range");
+            DataType dt3 = rangeAtt.getDataType();
+            rangeAtt.read(dt3,&range);
+            rangeAtt.close();
+
+            return {range,offset,digitisation};
+        }else {
+            cout << "Error atributos faltantes";
+            exit(1);
+        }
+    }else{
+        cout<<"Error al reemplazar nombre atributos";
+        exit(1);
+    }
+
+
+
+
+}

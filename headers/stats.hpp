@@ -8,7 +8,7 @@ using namespace std;
 namespace stats {
     class Stats {
     public:
-        static void getStats(H5File* file);
+        static void getStats(H5File* file, bool digitisado);
         static void getStats(DataSet* dataSet);
     };
 }

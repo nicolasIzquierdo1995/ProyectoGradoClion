@@ -3,6 +3,7 @@
 #include "../headers/utils.hpp"
 #include "../headers/huffman.hpp"
 #include "../headers/inputOutput.hpp"
+#include "../headers/stats.hpp"
 #include "h5Array.cpp"
 #include <map>
 #include <string.h>
@@ -19,6 +20,7 @@ using namespace utils;
 using namespace h5repack;
 using namespace huffman;
 using namespace inputOutput;
+using namespace stats;
 
 map<string,int> globalAttributes;
 uint16_t* firstReads;
@@ -586,13 +588,17 @@ void Compresser::CompressFile(H5File* file, int compressionLevel){
         getOnlyReads(file,compressedFileName);
     } else if (compressionLevel == 1){
         h5repack::repack(file, compressedFileName, "9");
-    } else if (compressionLevel == 2 ){
+    } else if (compressionLevel == 2){
         szipCompression(file,compressedFileName);
     } else if (compressionLevel == 3 || compressionLevel == 4) {
         readTreeFile();
         compressEventsAndReads(file,compressedFileName,compressionLevel == 4);
-    } else if (compressionLevel == 5){
+    } else if (compressionLevel == 5) {
         removeLogs(file, compressedFileName);
+    } else if (compressionLevel == 6) {
+        Stats::getStats(file, true);
+    }else if (compressionLevel == 7) {
+            Stats::getStats(file,false);
     } else if (compressionLevel == 9){
         generateHuffmanFromExample(file);
     } else if (compressionLevel == 10){
