@@ -268,25 +268,13 @@ h5Array<int16_t> getCompressedSignalBuffer(DataSet *signalDataset, int index) {
     int signalsCount = Utils::getDatasetSize(signalDataSpace);
     uint16_t* signalsBuffer = new uint16_t[signalsCount];
     int16_t* compressedSignalsBuffer = new int16_t[signalsCount];
-    int* compressedSignalsBuffer2 = new int[signalsCount];
     signalDataset->read(signalsBuffer,Utils::getSignalDataType(),*signalDataSpace,*signalDataSpace);
 
     firstReads[index] = signalsBuffer[0];
     firstReadsCount = index;
-    int min = 0;
-    int max = 0;
     compressedSignalsBuffer[0] = 0;
     for(int i = 1; i< signalsCount; i++){
         compressedSignalsBuffer[i] = signalsBuffer[i] - signalsBuffer[i - 1];
-        if (compressedSignalsBuffer[i] > max)
-            max = compressedSignalsBuffer[i];
-        if (compressedSignalsBuffer[i] < min)
-            min = compressedSignalsBuffer[i];
-        compressedSignalsBuffer2[i] = signalsBuffer[i] - signalsBuffer[i - 1];
-        if (compressedSignalsBuffer[i] < -32000 || compressedSignalsBuffer[i] > 32000){
-            int hola = 0;
-            hola++;
-        }
     }
     return h5Array<int16_t>(compressedSignalsBuffer,signalsCount);
 }
