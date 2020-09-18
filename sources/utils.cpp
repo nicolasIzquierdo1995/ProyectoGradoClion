@@ -31,6 +31,11 @@ CompType Utils::getCompressedEventDataType() {
 
 //devuelve el tipo de dato de los signal
 PredType Utils::getSignalDataType(){
+    return PredType::NATIVE_UINT16;
+}
+
+//devuelve el tipo de dato de los signal
+PredType Utils::getCompressedSignalDataType(){
     return PredType::NATIVE_INT16;
 }
 

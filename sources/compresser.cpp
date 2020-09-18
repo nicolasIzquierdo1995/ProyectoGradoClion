@@ -45,16 +45,16 @@ void saveAttributes(string fileName, int compressionLvl){
             DataSpace ds = DataSpace(1, dims);
             string attName = it->first;
             int value[1] = { it->second };
-            Attribute at = root.createAttribute( attName, PredType::NATIVE_INT,ds);
-            at.write( PredType::NATIVE_INT, value);
+            Attribute at = root.createAttribute( attName, Utils::getSignalDataType(),ds);
+            at.write( Utils::getSignalDataType(), value);
             it++;
         }
 
         if(compressionLvl == 3 || compressionLvl  == 4){
             DataSpace dataSpace = Utils::getDataspace(firstReadsCount + 1, firstReadsCount + 1);
             DSetCreatPropList *creatPropList = Utils::createCompressedSetCreatPropList(firstReadsCount + 1);
-            DataSet * newSignalsDataset = new DataSet(file.createDataSet("first_reads", PredType::NATIVE_UINT16, dataSpace, *creatPropList));
-            newSignalsDataset->write(firstReads, PredType::NATIVE_UINT16, dataSpace, dataSpace);
+            DataSet * newSignalsDataset = new DataSet(file.createDataSet("first_reads", Utils::getSignalDataType(), dataSpace, *creatPropList));
+            newSignalsDataset->write(firstReads, Utils::getSignalDataType(), dataSpace, dataSpace);
         }
     }
 }
@@ -181,6 +181,7 @@ void generateCsvFromExample(H5File* file) {
 
         for (int j = 1; j<  signalsCount; j++) {
             int diff = signalsBuffer[j] - signalsBuffer[j-1];
+
             if (readsMap.find(diff) == readsMap.end()){
                 readsMap[diff] = 1;
             }
@@ -267,14 +268,25 @@ h5Array<int16_t> getCompressedSignalBuffer(DataSet *signalDataset, int index) {
     int signalsCount = Utils::getDatasetSize(signalDataSpace);
     uint16_t* signalsBuffer = new uint16_t[signalsCount];
     int16_t* compressedSignalsBuffer = new int16_t[signalsCount];
+    int* compressedSignalsBuffer2 = new int[signalsCount];
     signalDataset->read(signalsBuffer,Utils::getSignalDataType(),*signalDataSpace,*signalDataSpace);
 
     firstReads[index] = signalsBuffer[0];
     firstReadsCount = index;
-
+    int min = 0;
+    int max = 0;
     compressedSignalsBuffer[0] = 0;
     for(int i = 1; i< signalsCount; i++){
         compressedSignalsBuffer[i] = signalsBuffer[i] - signalsBuffer[i - 1];
+        if (compressedSignalsBuffer[i] > max)
+            max = compressedSignalsBuffer[i];
+        if (compressedSignalsBuffer[i] < min)
+            min = compressedSignalsBuffer[i];
+        compressedSignalsBuffer2[i] = signalsBuffer[i] - signalsBuffer[i - 1];
+        if (compressedSignalsBuffer[i] < -32000 || compressedSignalsBuffer[i] > 32000){
+            int hola = 0;
+            hola++;
+        }
     }
     return h5Array<int16_t>(compressedSignalsBuffer,signalsCount);
 }
@@ -289,13 +301,13 @@ h5Array<uint16_t> getDecompressedSignalBuffer(H5File* file, DataSet *signalDatas
 
     if (useHuffman){
         int16_t* huffmanBuffer = new int16_t[signalsCount];
-        signalDataset->read(huffmanBuffer,Utils::getSignalDataType(),signalDataSpace,signalDataSpace);
+        signalDataset->read(huffmanBuffer,Utils::getCompressedSignalDataType(),signalDataSpace,signalDataSpace);
         signalsBuffer = mapSignalBufferD(h5Array<int16_t>(huffmanBuffer,signalsCount));
         decompressedCount = signalsBuffer.size();
     }
     else {
-        int* signalsBufferAux = new int[signalsCount];
-        signalDataset->read(signalsBufferAux,PredType::NATIVE_INT,signalDataSpace,signalDataSpace);
+        int16_t* signalsBufferAux = new int16_t[signalsCount];
+        signalDataset->read(signalsBufferAux,Utils::getCompressedSignalDataType(),signalDataSpace,signalDataSpace);
         decompressedCount = signalsCount;
         vector<int> aux(signalsBufferAux, signalsBufferAux + signalsCount);
         signalsBuffer = aux;
@@ -384,8 +396,8 @@ void szipCompression(H5File* file, string newFileName) {
         int size = compressedSignalsBuffers[i].size;
         DataSpace dataSpace = Utils::getDataspace(size, size);
         DSetCreatPropList* creatPropList = Utils::createCompressedSetCreatPropList(size);
-        DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], PredType::NATIVE_UINT16, dataSpace, *creatPropList));
-        newSignalsDataset->write(compressedSignalsBuffers[i].ptr, PredType::NATIVE_UINT16, dataSpace, dataSpace);
+        DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], Utils::getSignalDataType(), dataSpace, *creatPropList));
+        newSignalsDataset->write(compressedSignalsBuffers[i].ptr, Utils::getSignalDataType(), dataSpace, dataSpace);
     }
 }
 
@@ -436,7 +448,7 @@ void compressEventsAndReads(H5File* file,string newFileName, bool useHuffman){
         }
     }
 
-    PredType compressedSignalDataType = Utils::getSignalDataType();
+    PredType compressedSignalDataType = Utils::getCompressedSignalDataType();
     if (useHuffman) {
         for (int i = 0; i < signalDataSets.size; i++){
             h5Array<int16_t> huffmanSignalBuffer = mapSignalBufferC(compressedSignalBuffers[i]);
@@ -450,8 +462,7 @@ void compressEventsAndReads(H5File* file,string newFileName, bool useHuffman){
         for (int i = 0; i < signalDataSets.size; i++){
             int size = compressedSignalBuffers[i].size;
             DataSpace dataSpace = Utils::getDataspace(size, size);
-            DSetCreatPropList* creatPropList = Utils::createCompressedSetCreatPropList(size);
-            DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, dataSpace, *creatPropList));
+            DataSet * newSignalsDataset = new DataSet(newFile.createDataSet(signalDatasetNames[i], compressedSignalDataType, dataSpace));
             newSignalsDataset->write(compressedSignalBuffers[i].ptr, compressedSignalDataType, dataSpace, dataSpace);
         }
     }
@@ -490,7 +501,7 @@ void deCompressEventsAndReads(H5File* file,string newFileName, bool useHuffman){
     DataSet firstReadsDataset = file->openDataSet("/first_reads");
     DataSpace firstReadsDataSpace = firstReadsDataset.getSpace();
     uint16_t * firstReadsBuffer = new uint16_t[signalDataSets.size];
-    firstReadsDataset.read(firstReadsBuffer,PredType::NATIVE_UINT16,firstReadsDataSpace,firstReadsDataSpace);
+    firstReadsDataset.read(firstReadsBuffer,Utils::getSignalDataType(),firstReadsDataSpace,firstReadsDataSpace);
 
     if (compressEvents) {
         eventDataSets = getDataSetList(file,"Events");

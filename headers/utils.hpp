@@ -29,6 +29,7 @@ namespace utils{
         static CompType getEventDataType();
         static CompType getCompressedEventDataType();
         static PredType getSignalDataType();
+        static PredType getCompressedSignalDataType();
 
         static vector<DataSet>* listDatasets(string name,H5File* file,string path);
 
