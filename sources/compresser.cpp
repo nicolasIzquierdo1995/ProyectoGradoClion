@@ -580,7 +580,7 @@ void Compresser::CompressFile(H5File* file, int compressionLevel){
     Utils::replaceString(compressedFileName, "_copy.fast5", "_repacked.fast5");
 
     //guarda nivel de compresion en atributo
-    if (compressionLevel > 0 && compressionLevel < 9){
+    if (compressionLevel > 0 && compressionLevel < 6){
         globalAttributes.insert(pair<string,int>("compLevel",compressionLevel));
     }
 
@@ -598,7 +598,9 @@ void Compresser::CompressFile(H5File* file, int compressionLevel){
     } else if (compressionLevel == 6) {
         Stats::getStats(file, true);
     }else if (compressionLevel == 7) {
-            Stats::getStats(file,false);
+        Stats::getStats(file,false);
+    } else if (compressionLevel == 8){
+        Stats::getStats(file);
     } else if (compressionLevel == 9){
         generateHuffmanFromExample(file);
     } else if (compressionLevel == 10){

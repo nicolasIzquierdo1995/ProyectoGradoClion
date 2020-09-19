@@ -20,5 +20,6 @@ namespace inputOutput{
     public:
     static Arguments* ProcessArguments(int argc, char* argv[]);
     static void PrintOutput(string msg);
+    static int GetDataSetInput(int count);
   };
 }

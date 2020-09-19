@@ -79,3 +79,12 @@ Arguments* InputOutput::ProcessArguments(int argc, char* argv[]){
 void InputOutput::PrintOutput(string msg) {
     cout<<msg<<endl;
 }
+
+int InputOutput::GetDataSetInput(int count){
+    cout<<"La cantidad de datasets disponibles es: " + std::to_string(count)<<endl;
+    int ret = 0;
+    cout<<"Ingrese un numero de dataset valido (-1 para cancelar): ";
+    cin>>ret;
+    cout<<"OK";
+    return ret;
+}
