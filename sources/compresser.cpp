@@ -143,7 +143,7 @@ void generateHuffmanFromExample(H5File* file) {
         uint16_t* signalsBuffer = new uint16_t[signalsCount];
         currentDataSet.read(signalsBuffer,Utils::getSignalDataType(),*signalDataSpace,*signalDataSpace);
 
-        int min = -150;
+        int min = -200;
         int max = 200;
         for (int j = 1; j< signalsCount; j++){
            int diff = signalsBuffer[j] - signalsBuffer[j-1];
