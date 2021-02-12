@@ -1,7 +1,6 @@
 #include "../headers/inputOutput.hpp"
 #include "../headers/compresser.hpp"
 #include "../headers/utils.hpp"
-#include <boost/filesystem.hpp>
 #include <iostream>
 #include <chrono>
 
@@ -10,7 +9,6 @@ using namespace inputOutput;
 using namespace compresser;
 using namespace utils;
 using namespace H5;
-using namespace boost::filesystem;
 
 int main (int argc, char* argv[])
 {
@@ -32,7 +30,7 @@ int main (int argc, char* argv[])
     }
 
     //se elimina el archivo original
-    remove(args->fileName);
+    remove(args->fileName.c_str());
 
     //se termina el timer
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
