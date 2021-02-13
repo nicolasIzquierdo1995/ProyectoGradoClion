@@ -31,7 +31,6 @@ static Arguments* CreateErrorArgument(){
     Arguments * parg;
     parg = &arg;
     parg->isOk = false;
-    parg->errorMessage = "Error en argumentos";
     return parg;
 }
 

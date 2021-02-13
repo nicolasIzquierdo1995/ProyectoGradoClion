@@ -1,8 +1,9 @@
-#include "../headers/compresser.hpp"
+#include "../headers/compressor.hpp"
 #include "../headers/repack.hpp"
 #include "../headers/utils.hpp"
 #include "../headers/huffman.hpp"
 #include "../headers/inputOutput.hpp"
+#include "../headers/errorHandler.hpp"
 #include "../headers/stats.hpp"
 #include "h5Array.cpp"
 #include <map>
@@ -14,13 +15,14 @@
 #include <chrono>
 
 using namespace std;
-using namespace compresser;
+using namespace compressor;
 using namespace H5;
 using namespace utils;
 using namespace h5repack;
 using namespace huffman;
 using namespace inputOutput;
 using namespace stats;
+using namespace errorHandler;
 
 map<string,int> globalAttributes;
 uint16_t* firstReads;
@@ -32,7 +34,7 @@ const string huffmanPath = "../Files/huffmanTree.txt";
 const int huffmanTokenIndex = -666;
 
 
-Compresser::Compresser(){
+Compressor::Compressor(){
 
 }
 
@@ -561,8 +563,7 @@ void readTreeFile() {
 
     inFile.open(huffmanPath);
     if(!inFile){
-        InputOutput::PrintOutput("Error al abrir el archivo");
-        exit(1);
+        ErrorHandler::handleError(2);
     }
     while(getline(inFile,line)){
         string sPos = line.substr(0,line.find(limit));
@@ -573,7 +574,7 @@ void readTreeFile() {
 }
 
 //FUNCION DE COMPRESION
-void Compresser::CompressFile(H5File* file, int compressionLevel){
+void Compressor::CompressFile(H5File* file, int compressionLevel){
 
     InputOutput::PrintOutput("Compression Level: " + std::to_string(compressionLevel));
     string compressedFileName = file->getFileName();
@@ -583,34 +584,53 @@ void Compresser::CompressFile(H5File* file, int compressionLevel){
     if (compressionLevel > 0 && compressionLevel < 6){
         globalAttributes.insert(pair<string,int>("compLevel",compressionLevel));
     }
-
-    if (compressionLevel == 0){
-        getOnlyReads(file,compressedFileName);
-    } else if (compressionLevel == 1){
-        h5repack::repack(file, compressedFileName, "9");
-    } else if (compressionLevel == 2){
-        szipCompression(file,compressedFileName);
-    } else if (compressionLevel == 3 || compressionLevel == 4) {
-        readTreeFile();
-        compressEventsAndReads(file,compressedFileName,compressionLevel == 4);
-    } else if (compressionLevel == 5) {
-        removeLogs(file, compressedFileName);
-    } else if (compressionLevel == 6) {
-        Stats::getStats(file, true);
-    }else if (compressionLevel == 7) {
-        Stats::getStats(file,false);
-    } else if (compressionLevel == 8){
-        Stats::getStats(file);
-    } else if (compressionLevel == 9){
-        generateHuffmanFromExample(file);
-    } else if (compressionLevel == 10){
-        generateCsvFromExample(file);
+    try {
+        switch(compressionLevel) {
+            case (0):
+                getOnlyReads(file,compressedFileName);
+                break;
+            case (1):
+                h5repack::repack(file, compressedFileName, "9");
+                break;
+            case (2):
+                szipCompression(file,compressedFileName);
+                break;
+            case (3):
+            case (4):
+                readTreeFile();
+                compressEventsAndReads(file,compressedFileName,compressionLevel == 4);
+                break;
+            case (5):
+                removeLogs(file, compressedFileName);
+                break;
+            case (6):
+                Stats::getStats(file, true);
+                break;
+            case (7):
+                Stats::getStats(file,false);
+                break;
+            case (8):
+                Stats::getStats(file);
+                break;
+            case (9):
+                generateHuffmanFromExample(file);
+                break;
+            case (10):
+                generateCsvFromExample(file);
+                break;
+            default:
+                ErrorHandler::handleError(3);
+        }
     }
+    catch(Exception ex){
+        ErrorHandler::handleError(4);
+    }
+
 
     saveAttributes(compressedFileName,compressionLevel);
 }
 
-void Compresser::DeCompressFile(H5File* file, int compressionLevel){
+void Compressor::DeCompressFile(H5File* file, int compressionLevel){
     InputOutput::PrintOutput("Decompression Level: " + std::to_string(compressionLevel));
     string fileName = file->getFileName();
     string deCompressedFileName = fileName;
@@ -619,10 +639,19 @@ void Compresser::DeCompressFile(H5File* file, int compressionLevel){
     string attrName = "compLevel";;
     Group root = file->openGroup("/");
     H5Adelete(root.getId(),attrName.c_str());
-    if (compressionLevel == 1 || compressionLevel == 2) {
-        h5repack::repack(file, deCompressedFileName, "3");
-    } else if (compressionLevel == 3 || compressionLevel == 4) {
-        deCompressEventsAndReads(file,deCompressedFileName,compressionLevel == 4);
+
+    try {
+        if (compressionLevel == 1 || compressionLevel == 2) {
+            h5repack::repack(file, deCompressedFileName, "3");
+        } else if (compressionLevel == 3 || compressionLevel == 4) {
+            deCompressEventsAndReads(file,deCompressedFileName,compressionLevel == 4);
+        }
+        else {
+            ErrorHandler::handleError(3);
+        }
+    }
+    catch(Exception ex){
+        ErrorHandler::handleError(5);
     }
 }
 

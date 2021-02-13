@@ -12,7 +12,6 @@ namespace inputOutput{
     int compressionLevel;
     bool isOk;
     bool compress;
-    string errorMessage;
     string fileName;
   } Arguments;
 

@@ -1,12 +1,14 @@
 #include "../headers/inputOutput.hpp"
-#include "../headers/compresser.hpp"
+#include "../headers/compressor.hpp"
 #include "../headers/utils.hpp"
+#include "../headers/errorHandler.hpp"
 #include <iostream>
 #include <chrono>
 
 using namespace std;
 using namespace inputOutput;
-using namespace compresser;
+using namespace compressor;
+using namespace errorHandler;
 using namespace utils;
 using namespace H5;
 
@@ -17,11 +19,10 @@ int main (int argc, char* argv[])
 
     Arguments* args = InputOutput::ProcessArguments(argc, argv);
     if (!args->isOk){
-        cout << args->errorMessage;
-        exit(1) ;
+        ErrorHandler::handleError(1);
     }
 
-    Compresser* comp = new Compresser();
+    Compressor* comp = new Compressor();
     if (args->compress){
         comp->CompressFile(args->file, args->compressionLevel);
     }

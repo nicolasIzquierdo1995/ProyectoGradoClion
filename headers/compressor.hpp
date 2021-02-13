@@ -6,11 +6,11 @@ using namespace H5;
 using namespace std;
 
 
-namespace compresser{
+namespace compressor{
 
-  class Compresser {
+  class Compressor {
     public:
-    Compresser();
+    Compressor();
     void CompressFile(H5File* file, int compressionLevel);
     void DeCompressFile(H5File* file, int compressionLevel);
   };
