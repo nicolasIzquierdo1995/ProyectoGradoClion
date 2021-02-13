@@ -51,7 +51,7 @@ namespace utils{
         static int getDatasetSize(DataSet* dataSet);
         static int getDatasetSize(DataSpace* dataSpace);
         static DataSpace getDataspace(int size, long long unsigned int maxSize);
-
         static signalAttributes getSignalAttributes(H5File* file,string dataSetName);
+        static string getHuffmanTreeString();
     };
 }

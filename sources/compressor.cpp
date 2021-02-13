@@ -8,6 +8,7 @@
 #include "h5Array.cpp"
 #include <map>
 #include <string.h>
+#include <sstream>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -30,7 +31,7 @@ int firstReadsCount;
 map<int,string> huffmanMap;
 MinHeapNode*huffmanTree = NULL;
 bool compressEvents = false;
-const string huffmanPath = "../Files/huffmanTree.txt";
+const string huffmanPath = "../sources/huffmanTree.txt";
 const int huffmanTokenIndex = -666;
 
 
@@ -64,19 +65,22 @@ void saveAttributes(string fileName, int compressionLvl){
 }
 
 MinHeapNode* getHuffmanTreeFromFile(string fileName) {
-    ifstream inFile;
     string line;
     map<string,int> huffmanMap;
     vector<string> huffmanCodes;
     string limit = ": ";
-    inFile.open(fileName);
+    string file = Utils::getHuffmanTreeString();
 
-    while(getline(inFile,line)){
+    std::string result;
+    std::istringstream iss(file);
+
+    for (std::string line; std::getline(iss, line); ) {
         int diff = stoi(line.substr(0,line.find(limit)));
         string code = line.substr(line.find(limit));
         huffmanMap[code] = diff;
         huffmanCodes.push_back(code);
     }
+
     MinHeapNode* tree = (struct MinHeapNode*)malloc(sizeof(struct MinHeapNode));
     Huffman::generateNewTree(huffmanMap, huffmanCodes, tree);
     return tree;
@@ -556,16 +560,15 @@ void removeLogs(H5File* file,string newFileName) {
 
 // lee el archivo del arbol de huffman
 void readTreeFile() {
-    ifstream inFile;
     string line;
     int pos;
     string limit = ": ";
+    string file = Utils::getHuffmanTreeString();
 
-    inFile.open(huffmanPath);
-    if(!inFile){
-        ErrorHandler::handleError(2);
-    }
-    while(getline(inFile,line)){
+    std::string result;
+    std::istringstream iss(file);
+
+    for (std::string line; std::getline(iss, line); ) {
         string sPos = line.substr(0,line.find(limit));
         string sVal = line.substr(line.find(limit) + 2);
         pos = stoi(sPos);
