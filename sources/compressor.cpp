@@ -31,7 +31,6 @@ int firstReadsCount;
 map<int,string> huffmanMap;
 MinHeapNode*huffmanTree = NULL;
 bool compressEvents = false;
-const string huffmanPath = "../sources/huffmanTree.txt";
 const int huffmanTokenIndex = -666;
 
 
@@ -64,7 +63,7 @@ void saveAttributes(string fileName, int compressionLvl){
     }
 }
 
-MinHeapNode* getHuffmanTreeFromFile(string fileName) {
+MinHeapNode* getHuffmanTreeFromFile() {
     string line;
     map<string,int> huffmanMap;
     vector<string> huffmanCodes;
@@ -89,7 +88,7 @@ MinHeapNode* getHuffmanTreeFromFile(string fileName) {
 // descomprime el buffer de huffman en uno de diferencias
 vector<int> mapSignalBufferD(h5Array<int16_t> huffmanBuffer){
     if (huffmanTree == NULL){
-        huffmanTree = getHuffmanTreeFromFile(huffmanPath);
+        huffmanTree = getHuffmanTreeFromFile();
     }
     string bitstring;
     for(int i = 0; i < huffmanBuffer.size; i++){
